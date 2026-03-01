@@ -1,10 +1,12 @@
 import os
+import asyncio
+import hashlib
 from dotenv import load_dotenv
+
 import discord
 from discord.ext import commands
 from discord import app_commands
 from PIL import Image, ImageDraw, ImageFont
-import hashlib
 
 # ==========================
 # ENV
@@ -54,7 +56,7 @@ SIZE_OPTIONS = {
 }
 
 # ==========================
-# SPRITE DATA (UNCHANGED)
+# SPRITE DATA
 # ==========================
 
 SPRITE_DATA = {
@@ -80,7 +82,7 @@ SPRITE_DATA = {
 }
 
 # ==========================
-# AWARDS (UNCHANGED)
+# AWARDS
 # ==========================
 
 AWARDS = {
@@ -223,14 +225,20 @@ async def award(interaction: discord.Interaction, tank_name: str):
     await interaction.response.send_message(file=discord.File(image_path))
 
 # ==========================
-# READY + SYNC
+# MAIN (Railway Safe)
 # ==========================
 
-@bot.event
-async def on_ready():
-    guild = discord.Object(id=GUILD_ID)
-    await tree.sync(guild=guild)
-    print(f"Logged in as {bot.user}")
+async def main():
+    async with bot:
+        guild = discord.Object(id=GUILD_ID)
+        await tree.sync(guild=guild)
+        print("Award command synced.")
+        print("Logged in as", bot.user)
+        await bot.start(TOKEN)
 
 print("Bot starting...")
-bot.run(TOKEN)
+
+try:
+    asyncio.run(main())
+except Exception as e:
+    print("Fatal error:", e)
