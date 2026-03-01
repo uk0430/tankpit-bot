@@ -1,9 +1,10 @@
 import os
-import asyncio
 import discord
-from discord import app_commands
 from discord.ext import commands
+from discord import app_commands
 from PIL import Image, ImageDraw, ImageFont
+import asyncio
+import uuid
 
 # ================= CONFIG =================
 
@@ -12,31 +13,20 @@ GUILD_ID = int(os.getenv("GUILD_ID"))
 
 SPRITE_PATH = "assets/awards.gif"
 FONT_PATH = "fonts/Gamer-Bold.otf"
-CACHE_DIR = "cache"
-
-os.makedirs(CACHE_DIR, exist_ok=True)
-
-# ================= VALIDATION =================
 
 if not TOKEN:
     raise ValueError("DISCORD_TOKEN missing")
 
-if not os.path.exists(SPRITE_PATH):
-    raise FileNotFoundError("assets/awards.gif not found")
-
-if not os.path.exists(FONT_PATH):
-    raise FileNotFoundError("fonts/Gamer-Bold.otf not found")
-
-# ================= BOT SETUP =================
+# ================= BOT =================
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 tree = bot.tree
 
+# ================= LOAD ASSETS =================
+
 SPRITE = Image.open(SPRITE_PATH).convert("RGBA")
 FONT = ImageFont.truetype(FONT_PATH, 32)
-
-# ================= DATA =================
 
 AWARDS = {
     "MVP": (0, 0, 64, 64),
@@ -64,8 +54,10 @@ def render_preview(username, award, color, size, banner):
     award_img = SPRITE.crop(coords)
 
     scale = SIZES[size]
-    new_size = (int(award_img.width * scale), int(award_img.height * scale))
-    award_img = award_img.resize(new_size, Image.NEAREST)
+    award_img = award_img.resize(
+        (int(award_img.width * scale), int(award_img.height * scale)),
+        Image.NEAREST
+    )
 
     width = max(award_img.width, 400)
     height = award_img.height + 140
@@ -97,68 +89,70 @@ class AwardView(discord.ui.View):
     def __init__(self, user):
         super().__init__(timeout=180)
         self.user = user
-        self.selected_award = list(AWARDS.keys())[0]
-        self.selected_color = list(COLORS.keys())[0]
-        self.selected_size = "Default"
+        self.award = list(AWARDS.keys())[0]
+        self.color = list(COLORS.keys())[0]
+        self.size = "Default"
         self.banner = False
 
     async def update_preview(self, interaction):
         img = render_preview(
             self.user.display_name,
-            self.selected_award,
-            self.selected_color,
-            self.selected_size,
+            self.award,
+            self.color,
+            self.size,
             self.banner
         )
 
-        path = os.path.join(CACHE_DIR, "preview.png")
-        img.save(path)
+        filename = f"preview_{uuid.uuid4().hex}.png"
+        img.save(filename)
 
         await interaction.response.edit_message(
-            attachments=[discord.File(path)],
+            attachments=[discord.File(filename)],
             view=self
         )
 
+        os.remove(filename)
+
     @discord.ui.select(
         placeholder="Select Award",
-        options=[discord.SelectOption(label=name) for name in AWARDS.keys()]
+        options=[discord.SelectOption(label=name) for name in AWARDS]
     )
-    async def award_select(self, interaction: discord.Interaction, select):
-        self.selected_award = select.values[0]
+    async def award_select(self, interaction, select):
+        self.award = select.values[0]
         await self.update_preview(interaction)
 
     @discord.ui.button(label="Orange", style=discord.ButtonStyle.primary)
-    async def orange(self, interaction: discord.Interaction, button):
-        self.selected_color = "Orange"
+    async def orange(self, interaction, button):
+        self.color = "Orange"
         await self.update_preview(interaction)
 
     @discord.ui.button(label="Purple", style=discord.ButtonStyle.primary)
-    async def purple(self, interaction: discord.Interaction, button):
-        self.selected_color = "Purple"
+    async def purple(self, interaction, button):
+        self.color = "Purple"
         await self.update_preview(interaction)
 
     @discord.ui.button(label="Blue", style=discord.ButtonStyle.primary)
-    async def blue(self, interaction: discord.Interaction, button):
-        self.selected_color = "Blue"
+    async def blue(self, interaction, button):
+        self.color = "Blue"
         await self.update_preview(interaction)
 
     @discord.ui.button(label="Red", style=discord.ButtonStyle.primary)
-    async def red(self, interaction: discord.Interaction, button):
-        self.selected_color = "Red"
+    async def red(self, interaction, button):
+        self.color = "Red"
         await self.update_preview(interaction)
 
     @discord.ui.button(label="Toggle Banner", style=discord.ButtonStyle.secondary)
-    async def toggle_banner(self, interaction: discord.Interaction, button):
+    async def toggle_banner(self, interaction, button):
         self.banner = not self.banner
         await self.update_preview(interaction)
 
     @discord.ui.select(
         placeholder="Select Size",
         row=2,
-        options=[discord.SelectOption(label=name) for name in SIZES.keys()]
+        options=[discord.SelectOption(label=name) for name in SIZES]
     )
-    async def size_select(self, interaction: discord.Interaction, select):
-        self.selected_size = select.values[0]
+    async def size_select(self, interaction, select):
+        self.size = select.values[0]
         await self.update_preview(interaction)
 
 # ================= COMMAND =================
@@ -169,31 +163,30 @@ async def award(interaction: discord.Interaction):
 
     img = render_preview(
         interaction.user.display_name,
-        view.selected_award,
-        view.selected_color,
-        view.selected_size,
+        view.award,
+        view.color,
+        view.size,
         view.banner
     )
 
-    path = os.path.join(CACHE_DIR, "preview.png")
-    img.save(path)
+    filename = f"preview_{uuid.uuid4().hex}.png"
+    img.save(filename)
 
     await interaction.response.send_message(
-        file=discord.File(path),
+        file=discord.File(filename),
         view=view
     )
 
-# ================= RESET SYNC =================
+    os.remove(filename)
+
+# ================= SYNC =================
 
 @bot.event
 async def on_ready():
     guild = discord.Object(id=GUILD_ID)
-
     await tree.sync(guild=guild)
-
-    print("Synced clean award command to guild.")
+    print("Award command synced.")
     print(f"Logged in as {bot.user}")
 
-# ================= RUN =================
-
+print("Bot starting...")
 bot.run(TOKEN)
