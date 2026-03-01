@@ -7,7 +7,7 @@ import hashlib
 from dotenv import load_dotenv
 
 # ==========================
-# LOAD ENV VARIABLES
+# ENV
 # ==========================
 
 load_dotenv()
@@ -16,22 +16,17 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 if TOKEN is None:
     raise ValueError("No DISCORD_TOKEN found in environment variables.")
 
-# ==========================
-# CONFIG
-# ==========================
-
-GUILD_ID = 615551999701811221  # <-- Your server ID
+GUILD_ID = 615551999701811221
 
 SPRITE_PATH = "assets/awards.gif"
 FONT_PATH = "fonts/Gamer-Bold.otf"
 ICON_HEIGHT = 16
 
 CACHE_FOLDER = "cache"
-if not os.path.exists(CACHE_FOLDER):
-    os.makedirs(CACHE_FOLDER)
+os.makedirs(CACHE_FOLDER, exist_ok=True)
 
 # ==========================
-# OFFICIAL COLORS
+# COLORS
 # ==========================
 
 OFFICIAL_COLORS = {
@@ -41,14 +36,9 @@ OFFICIAL_COLORS = {
     "Red": (224, 0, 0),
 }
 
-TANKPIT_BG = (255, 255, 224)
-TANKPIT_TEXT = (255, 144, 0)
-
-SIZE_OPTIONS = {
-    "Default": 1.0,
-    "Medium": 1.3,
-    "Large": 1.6,
-}
+# ==========================
+# SPRITE DATA
+# ==========================
 
 SPRITE_DATA = {
     "a0-1": {"x": 13, "w": 13},
@@ -57,31 +47,82 @@ SPRITE_DATA = {
     "a1-1": {"x": 82, "w": 30},
     "a1-2": {"x": 112, "w": 30},
     "a1-3": {"x": 142, "w": 30},
+    "a2-1": {"x": 181, "w": 9},
+    "a2-2": {"x": 190, "w": 9},
+    "a2-3": {"x": 199, "w": 9},
+    "a3-1": {"x": 217, "w": 9},
+    "a3-2": {"x": 226, "w": 9},
+    "a3-3": {"x": 235, "w": 9},
+    "a4-3": {"x": 277, "w": 11},
+    "a5-1": {"x": 301, "w": 13},
+    "a5-2": {"x": 314, "w": 13},
+    "a5-3": {"x": 327, "w": 13},
+    "a6-1": {"x": 340, "w": 11},
+    "a7-1": {"x": 351, "w": 11},
+    "a8-1": {"x": 376, "w": 14},
 }
+
+# ==========================
+# FULL AWARDS
+# ==========================
 
 AWARDS = {
-    "single_star": {"class": "a0-1", "display": "Single Star"},
-    "double_star": {"class": "a0-2", "display": "Double Star"},
-    "triple_star": {"class": "a0-3", "display": "Triple Star"},
-    "bronze_tank": {"class": "a1-1", "display": "Bronze Tank"},
-    "silver_tank": {"class": "a1-2", "display": "Silver Tank"},
-    "golden_tank": {"class": "a1-3", "display": "Golden Tank"},
+    # Stars
+    "single_star": {"display": "Single Star", "class": "a0-1", "category": "stars"},
+    "double_star": {"display": "Double Star", "class": "a0-2", "category": "stars"},
+    "triple_star": {"display": "Triple Star", "class": "a0-3", "category": "stars"},
+
+    # Tanks
+    "bronze_tank": {"display": "Bronze Tank", "class": "a1-1", "category": "tanks"},
+    "silver_tank": {"display": "Silver Tank", "class": "a1-2", "category": "tanks"},
+    "golden_tank": {"display": "Golden Tank", "class": "a1-3", "category": "tanks"},
+
+    # Medals
+    "combat_honor": {"display": "Combat Honor Medal", "class": "a2-1", "category": "medals"},
+    "battle_honor": {"display": "Battle Honor Medal", "class": "a2-2", "category": "medals"},
+    "heroic_honor": {"display": "Heroic Honor Medal", "class": "a2-3", "category": "medals"},
+
+    # Swords
+    "shining_sword": {"display": "Shining Sword", "class": "a3-1", "category": "swords"},
+    "battered_sword": {"display": "Battered Sword", "class": "a3-2", "category": "swords"},
+    "rusty_sword": {"display": "Rusty Sword", "class": "a3-3", "category": "swords"},
+
+    # Special
+    "defender_truth": {"display": "Defender of the Truth", "class": "a4-3", "category": "special"},
+
+    # Cups
+    "bronze_cup": {"display": "Bronze Cup", "class": "a5-1", "category": "cups"},
+    "silver_cup": {"display": "Silver Cup", "class": "a5-2", "category": "cups"},
+    "gold_cup": {"display": "Gold Cup", "class": "a5-3", "category": "cups"},
+
+    # Other
+    "purple_heart": {"display": "Purple Heart", "class": "a6-1", "category": "other"},
+    "war_correspondent": {"display": "War Correspondent", "class": "a7-1", "category": "other"},
+    "lightbulb": {"display": "Lightbulb", "class": "a8-1", "category": "other"},
 }
 
-CATEGORY_ORDER = ["single_star","double_star","triple_star","bronze_tank","silver_tank","golden_tank"]
+CATEGORY_ORDER = ["stars", "tanks", "medals", "swords", "special", "cups", "other"]
 
 # ==========================
 # HELPERS
 # ==========================
 
+def sort_awards(selected):
+    ordered = []
+    for category in CATEGORY_ORDER:
+        for key, data in AWARDS.items():
+            if data["category"] == category and key in selected:
+                ordered.append(key)
+    return ordered
+
 def crop_award(sprite, class_name):
     data = SPRITE_DATA[class_name]
     return sprite.crop((data["x"], 0, data["x"] + data["w"], ICON_HEIGHT))
 
-def generate_award_banner(name, award_keys, color, banner=False, size_mode="Default"):
-    scale = SIZE_OPTIONS[size_mode]
+def generate_award_banner(name, award_keys, color):
+    award_keys = sort_awards(award_keys)
 
-    cache_string = f"{name}_{award_keys}_{color}_{banner}_{size_mode}"
+    cache_string = f"{name}_{award_keys}_{color}"
     cache_hash = hashlib.md5(cache_string.encode()).hexdigest()
     cache_path = os.path.join(CACHE_FOLDER, f"{cache_hash}.png")
 
@@ -89,33 +130,34 @@ def generate_award_banner(name, award_keys, color, banner=False, size_mode="Defa
         return cache_path
 
     sprite = Image.open(SPRITE_PATH).convert("RGBA")
-    font = ImageFont.truetype(FONT_PATH, int(18 * scale))
+    font = ImageFont.truetype(FONT_PATH, 18)
 
-    padding_x = int(14 * scale)
-    padding_y = int(6 * scale)
-    spacing = int(4 * scale)
+    padding = 10
+    spacing = 3
+
+    temp = Image.new("RGBA",(1,1))
+    draw = ImageDraw.Draw(temp)
+    bbox = draw.textbbox((0,0), name, font=font)
+    text_width = bbox[2]-bbox[0]
+    text_height = bbox[3]-bbox[1]
 
     icons = []
     for key in award_keys:
         icon = crop_award(sprite, AWARDS[key]["class"])
-        w,h = icon.size
-        icon = icon.resize((int(w*scale), int(h*scale)), Image.NEAREST)
         icons.append(icon)
 
     awards_width = sum(icon.width for icon in icons)
     awards_width += spacing*(len(icons)-1) if icons else 0
 
-    text_width, text_height = font.getbbox(name)[2:4]
-
-    width = max(text_width, awards_width) + padding_x*2
-    height = padding_y*2 + text_height + (icons[0].height if icons else 0)
+    width = max(text_width, awards_width) + padding*2
+    height = padding*2 + text_height + (icons[0].height if icons else 0)
 
     img = Image.new("RGBA",(width,height),(0,0,0,0))
     draw = ImageDraw.Draw(img)
-    draw.text(((width-text_width)//2,padding_y), name, fill=color, font=font)
+    draw.text(((width-text_width)//2,padding), name, fill=color, font=font)
 
     x = (width-awards_width)//2
-    y = padding_y+text_height
+    y = padding + text_height
 
     for icon in icons:
         img.paste(icon,(x,y),icon)
@@ -125,12 +167,10 @@ def generate_award_banner(name, award_keys, color, banner=False, size_mode="Defa
     return cache_path
 
 # ==========================
-# DISCORD BOT
+# DISCORD
 # ==========================
 
 intents = discord.Intents.default()
-intents.message_content = True
-
 bot = commands.Bot(command_prefix="!", intents=intents)
 tree = bot.tree
 
@@ -141,17 +181,20 @@ class AwardView(discord.ui.View):
         self.selected_awards = []
         self.name_color = "Blue"
 
-    @discord.ui.select(
-        placeholder="Select awards...",
-        min_values=0,
-        max_values=len(AWARDS),
-        options=[
-            discord.SelectOption(label=data["display"], value=key)
-            for key,data in AWARDS.items()
-        ],
-    )
-    async def select_awards(self, interaction: discord.Interaction, select: discord.ui.Select):
-        self.selected_awards = select.values
+        select = discord.ui.Select(
+            placeholder="Select awards...",
+            min_values=0,
+            max_values=len(AWARDS),
+            options=[
+                discord.SelectOption(label=data["display"], value=key)
+                for key, data in AWARDS.items()
+            ],
+        )
+        select.callback = self.select_callback
+        self.add_item(select)
+
+    async def select_callback(self, interaction: discord.Interaction):
+        self.selected_awards = interaction.data["values"]
         await interaction.response.defer()
 
     @discord.ui.button(label="Generate", style=discord.ButtonStyle.green)
@@ -169,8 +212,9 @@ class AwardView(discord.ui.View):
     guild=discord.Object(id=GUILD_ID)
 )
 async def award(interaction: discord.Interaction, tank_name: str):
+    await interaction.response.defer()
     view = AwardView(tank_name)
-    await interaction.response.send_message(
+    await interaction.followup.send(
         f"Customize awards for **{tank_name}**:",
         view=view
     )
@@ -179,5 +223,6 @@ async def award(interaction: discord.Interaction, tank_name: str):
 async def on_ready():
     await tree.sync(guild=discord.Object(id=GUILD_ID))
     print(f"Logged in as {bot.user}")
+    print(f"Total awards loaded: {len(AWARDS)}")
 
 bot.run(TOKEN)
