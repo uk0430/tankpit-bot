@@ -63,39 +63,26 @@ SPRITE_DATA = {
 }
 
 # ==========================
-# FULL AWARDS
+# AWARDS
 # ==========================
 
 AWARDS = {
-    # Stars
     "single_star": {"display": "Single Star", "class": "a0-1", "category": "stars"},
     "double_star": {"display": "Double Star", "class": "a0-2", "category": "stars"},
     "triple_star": {"display": "Triple Star", "class": "a0-3", "category": "stars"},
-
-    # Tanks
     "bronze_tank": {"display": "Bronze Tank", "class": "a1-1", "category": "tanks"},
     "silver_tank": {"display": "Silver Tank", "class": "a1-2", "category": "tanks"},
     "golden_tank": {"display": "Golden Tank", "class": "a1-3", "category": "tanks"},
-
-    # Medals
     "combat_honor": {"display": "Combat Honor Medal", "class": "a2-1", "category": "medals"},
     "battle_honor": {"display": "Battle Honor Medal", "class": "a2-2", "category": "medals"},
     "heroic_honor": {"display": "Heroic Honor Medal", "class": "a2-3", "category": "medals"},
-
-    # Swords
     "shining_sword": {"display": "Shining Sword", "class": "a3-1", "category": "swords"},
     "battered_sword": {"display": "Battered Sword", "class": "a3-2", "category": "swords"},
     "rusty_sword": {"display": "Rusty Sword", "class": "a3-3", "category": "swords"},
-
-    # Special
     "defender_truth": {"display": "Defender of the Truth", "class": "a4-3", "category": "special"},
-
-    # Cups
     "bronze_cup": {"display": "Bronze Cup", "class": "a5-1", "category": "cups"},
     "silver_cup": {"display": "Silver Cup", "class": "a5-2", "category": "cups"},
     "gold_cup": {"display": "Gold Cup", "class": "a5-3", "category": "cups"},
-
-    # Other
     "purple_heart": {"display": "Purple Heart", "class": "a6-1", "category": "other"},
     "war_correspondent": {"display": "War Correspondent", "class": "a7-1", "category": "other"},
     "lightbulb": {"display": "Lightbulb", "class": "a8-1", "category": "other"},
@@ -141,10 +128,7 @@ def generate_award_banner(name, award_keys, color):
     text_width = bbox[2]-bbox[0]
     text_height = bbox[3]-bbox[1]
 
-    icons = []
-    for key in award_keys:
-        icon = crop_award(sprite, AWARDS[key]["class"])
-        icons.append(icon)
+    icons = [crop_award(sprite, AWARDS[key]["class"]) for key in award_keys]
 
     awards_width = sum(icon.width for icon in icons)
     awards_width += spacing*(len(icons)-1) if icons else 0
@@ -181,7 +165,8 @@ class AwardView(discord.ui.View):
         self.selected_awards = []
         self.name_color = "Blue"
 
-        select = discord.ui.Select(
+        # Award selector
+        self.add_item(discord.ui.Select(
             placeholder="Select awards...",
             min_values=0,
             max_values=len(AWARDS),
@@ -189,22 +174,45 @@ class AwardView(discord.ui.View):
                 discord.SelectOption(label=data["display"], value=key)
                 for key, data in AWARDS.items()
             ],
-        )
-        select.callback = self.select_callback
-        self.add_item(select)
+            custom_id="award_select"
+        ))
 
-    async def select_callback(self, interaction: discord.Interaction):
-        self.selected_awards = interaction.data["values"]
+        # Color selector
+        self.add_item(discord.ui.Select(
+            placeholder="Select name color...",
+            min_values=1,
+            max_values=1,
+            options=[
+                discord.SelectOption(label=color, value=color)
+                for color in OFFICIAL_COLORS.keys()
+            ],
+            custom_id="color_select"
+        ))
+
+    async def interaction_check(self, interaction: discord.Interaction):
+        return True
+
+    @discord.ui.select(custom_id="award_select")
+    async def award_select(self, interaction: discord.Interaction, select: discord.ui.Select):
+        self.selected_awards = select.values
+        await interaction.response.defer()
+
+    @discord.ui.select(custom_id="color_select")
+    async def color_select(self, interaction: discord.Interaction, select: discord.ui.Select):
+        self.name_color = select.values[0]
         await interaction.response.defer()
 
     @discord.ui.button(label="Generate", style=discord.ButtonStyle.green)
     async def generate(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+
         image_path = generate_award_banner(
             self.tank_name,
             self.selected_awards,
             OFFICIAL_COLORS[self.name_color]
         )
-        await interaction.response.send_message(file=discord.File(image_path))
+
+        await interaction.followup.send(file=discord.File(image_path))
 
 @tree.command(
     name="award",
