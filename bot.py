@@ -1,5 +1,4 @@
 import os
-import asyncio
 import hashlib
 from dotenv import load_dotenv
 
@@ -225,20 +224,15 @@ async def award(interaction: discord.Interaction, tank_name: str):
     await interaction.response.send_message(file=discord.File(image_path))
 
 # ==========================
-# MAIN (Railway Safe)
+# READY + SYNC
 # ==========================
 
-async def main():
-    async with bot:
-        guild = discord.Object(id=GUILD_ID)
-        await tree.sync(guild=guild)
-        print("Award command synced.")
-        print("Logged in as", bot.user)
-        await bot.start(TOKEN)
+@bot.event
+async def on_ready():
+    guild = discord.Object(id=GUILD_ID)
+    await tree.sync(guild=guild)
+    print(f"Logged in as {bot.user}")
+    print("Award command synced.")
 
 print("Bot starting...")
-
-try:
-    asyncio.run(main())
-except Exception as e:
-    print("Fatal error:", e)
+bot.run(TOKEN)
