@@ -187,16 +187,11 @@ async def award(interaction: discord.Interaction):
 
 @bot.event
 async def on_ready():
-    # Clear GLOBAL commands
-    tree.clear_commands(guild=None)
-    await tree.sync()
-
-    # Clear GUILD commands
     guild = discord.Object(id=GUILD_ID)
-    tree.clear_commands(guild=guild)
+
     await tree.sync(guild=guild)
 
-    print("Global + Guild commands wiped.")
+    print("Synced clean award command to guild.")
     print(f"Logged in as {bot.user}")
 
 # ================= RUN =================
