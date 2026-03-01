@@ -190,3 +190,12 @@ async def on_ready():
 
 print("Bot starting...")
 bot.run(TOKEN)
+
+print("Bot starting...")
+
+try:
+    bot.run(TOKEN)
+except Exception as e:
+    print("Bot crashed:", e)
+
+print("BOT.RUN RETURNED — PROCESS EXITING")
