@@ -6,10 +6,6 @@ import asyncio
 import os
 import hashlib
 
-# ========================
-# CONFIG
-# ========================
-
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 SPRITE_PATH = "awards.gif"
@@ -18,13 +14,9 @@ CACHE_DIR = "cache"
 
 os.makedirs(CACHE_DIR, exist_ok=True)
 
-INTENTS = discord.Intents.default()
-bot = commands.Bot(command_prefix="!", intents=INTENTS)
+intents = discord.Intents.default()
+bot = commands.Bot(command_prefix="!", intents=intents)
 tree = bot.tree
-
-# ========================
-# DATA
-# ========================
 
 AWARDS = {
     "MVP": (0, 0, 64, 64),
@@ -45,21 +37,14 @@ SIZES = {
     "large": 1.8,
 }
 
-# ========================
-# PRELOAD ASSETS (IMPORTANT)
-# ========================
-
+# Preload once at boot
 SPRITE = Image.open(SPRITE_PATH).convert("RGBA")
 FONT = ImageFont.truetype(FONT_PATH, 32)
 
-print("Assets preloaded successfully.")
+print("Assets preloaded.")
 
-# ========================
-# RENDER FUNCTION (SYNC)
-# ========================
 
 def render_image(username, award_name, color_name, size_name):
-
     coords = AWARDS[award_name]
     award = SPRITE.crop(coords)
 
@@ -92,17 +77,12 @@ def render_image(username, award_name, color_name, size_name):
     return img
 
 
-# ========================
-# CACHE
-# ========================
-
 def cache_key(username, award, color, size):
     raw = f"{username}-{award}-{color}-{size}"
     return hashlib.md5(raw.encode()).hexdigest() + ".png"
 
 
 async def get_or_create_image(username, award, color, size):
-
     filename = cache_key(username, award, color, size)
     path = os.path.join(CACHE_DIR, filename)
 
@@ -110,7 +90,6 @@ async def get_or_create_image(username, award, color, size):
         return path
 
     loop = asyncio.get_running_loop()
-
     img = await loop.run_in_executor(
         None,
         render_image,
@@ -123,10 +102,6 @@ async def get_or_create_image(username, award, color, size):
     img.save(path)
     return path
 
-
-# ========================
-# COMMAND
-# ========================
 
 @tree.command(name="award", description="Generate TankPit award")
 @app_commands.describe(
@@ -157,11 +132,9 @@ async def award(interaction: discord.Interaction, award: str, color: str, size: 
             return
 
         username = interaction.user.display_name
-
         path = await get_or_create_image(username, award, color, size)
 
-        file = discord.File(path)
-        await interaction.followup.send(file=file)
+        await interaction.followup.send(file=discord.File(path))
 
     except Exception as e:
         print("Error:", e)
@@ -170,10 +143,6 @@ async def award(interaction: discord.Interaction, award: str, color: str, size: 
         except:
             pass
 
-
-# ========================
-# READY
-# ========================
 
 @bot.event
 async def on_ready():
