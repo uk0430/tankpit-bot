@@ -1,12 +1,18 @@
+import os
+import asyncio
+import hashlib
 import discord
 from discord import app_commands
 from discord.ext import commands
 from PIL import Image, ImageDraw, ImageFont
-import asyncio
-import os
-import hashlib
+
+# ==============================
+# ENVIRONMENT CONFIG
+# ==============================
 
 TOKEN = os.getenv("DISCORD_TOKEN")
+SYNC_MODE = os.getenv("SYNC_MODE", "dev")  # dev or global
+GUILD_ID = int(os.getenv("GUILD_ID", "0"))  # required in dev mode
 
 SPRITE_PATH = "awards.gif"
 FONT_PATH = "Gamer-Bold.otf"
@@ -14,9 +20,17 @@ CACHE_DIR = "cache"
 
 os.makedirs(CACHE_DIR, exist_ok=True)
 
+# ==============================
+# BOT SETUP
+# ==============================
+
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 tree = bot.tree
+
+# ==============================
+# DATA
+# ==============================
 
 AWARDS = {
     "MVP": (0, 0, 64, 64),
@@ -37,12 +51,18 @@ SIZES = {
     "large": 1.8,
 }
 
-# Preload once at boot
+# ==============================
+# PRELOAD ASSETS
+# ==============================
+
 SPRITE = Image.open(SPRITE_PATH).convert("RGBA")
 FONT = ImageFont.truetype(FONT_PATH, 32)
 
 print("Assets preloaded.")
 
+# ==============================
+# IMAGE RENDERING (NON-BLOCKING SAFE)
+# ==============================
 
 def render_image(username, award_name, color_name, size_name):
     coords = AWARDS[award_name]
@@ -103,6 +123,10 @@ async def get_or_create_image(username, award, color, size):
     return path
 
 
+# ==============================
+# SLASH COMMAND
+# ==============================
+
 @tree.command(name="award", description="Generate TankPit award")
 @app_commands.describe(
     award="Select award",
@@ -111,7 +135,7 @@ async def get_or_create_image(username, award, color, size):
 )
 async def award(interaction: discord.Interaction, award: str, color: str, size: str):
 
-    # ALWAYS ACK FIRST
+    # ALWAYS ACKNOWLEDGE FIRST
     try:
         await interaction.response.defer(thinking=True)
     except discord.NotFound:
@@ -144,11 +168,31 @@ async def award(interaction: discord.Interaction, award: str, color: str, size: 
             pass
 
 
+# ==============================
+# SYNC STRATEGY (PROFESSIONAL)
+# ==============================
+
 @bot.event
 async def on_ready():
-    await tree.sync()
+
+    if SYNC_MODE == "dev":
+        if not GUILD_ID:
+            raise ValueError("GUILD_ID required in dev mode")
+
+        guild = discord.Object(id=GUILD_ID)
+        await tree.sync(guild=guild)
+        print("Synced to development guild only.")
+
+    else:
+        await tree.sync()
+        print("Synced globally.")
+
     print(f"Logged in as {bot.user}")
     print(f"Total awards loaded: {len(AWARDS)}")
 
+
+# ==============================
+# RUN
+# ==============================
 
 bot.run(TOKEN)
