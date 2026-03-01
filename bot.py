@@ -6,12 +6,10 @@ from discord import app_commands
 from discord.ext import commands
 from PIL import Image, ImageDraw, ImageFont
 
-# ==============================
-# ENVIRONMENT CONFIG
-# ==============================
+# ================= CONFIG =================
 
 TOKEN = os.getenv("DISCORD_TOKEN")
-SYNC_MODE = os.getenv("SYNC_MODE", "dev")  # dev or global
+SYNC_MODE = os.getenv("SYNC_MODE", "dev")
 GUILD_ID = int(os.getenv("GUILD_ID", "0"))
 
 SPRITE_PATH = "assets/awards.gif"
@@ -20,30 +18,27 @@ CACHE_DIR = "cache"
 
 os.makedirs(CACHE_DIR, exist_ok=True)
 
-# ==============================
-# VALIDATION
-# ==============================
+# =============== VALIDATION ===============
 
 if not TOKEN:
-    raise ValueError("DISCORD_TOKEN is missing.")
+    raise ValueError("DISCORD_TOKEN missing")
 
 if not os.path.exists(SPRITE_PATH):
-    raise FileNotFoundError(f"{SPRITE_PATH} not found.")
+    raise FileNotFoundError("assets/awards.gif not found")
 
 if not os.path.exists(FONT_PATH):
-    raise FileNotFoundError(f"{FONT_PATH} not found.")
+    raise FileNotFoundError("fonts/Gamer-Bold.otf not found")
 
-# ==============================
-# BOT SETUP
-# ==============================
+# =============== BOT SETUP ===============
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 tree = bot.tree
 
-# ==============================
-# DATA
-# ==============================
+SPRITE = Image.open(SPRITE_PATH).convert("RGBA")
+FONT = ImageFont.truetype(FONT_PATH, 32)
+
+# =============== DATA ===============
 
 AWARDS = {
     "MVP": (0, 0, 64, 64),
@@ -52,155 +47,172 @@ AWARDS = {
 }
 
 COLORS = {
-    "orange": (255, 165, 0),
-    "purple": (128, 0, 128),
-    "blue": (0, 102, 255),
-    "red": (220, 20, 60),
+    "Orange": (255, 165, 0),
+    "Purple": (128, 0, 128),
+    "Blue": (0, 102, 255),
+    "Red": (220, 20, 60),
 }
 
 SIZES = {
-    "default": 1,
-    "medium": 1.4,
-    "large": 1.8,
+    "Default": 1,
+    "Medium": 1.4,
+    "Large": 1.8,
 }
 
-# ==============================
-# PRELOAD ASSETS
-# ==============================
+# =============== RENDERING ===============
 
-SPRITE = Image.open(SPRITE_PATH).convert("RGBA")
-FONT = ImageFont.truetype(FONT_PATH, 32)
+def render_preview(username, award, color, size, banner):
+    coords = AWARDS[award]
+    award_img = SPRITE.crop(coords)
 
-print("Assets loaded successfully.")
+    scale = SIZES[size]
+    new_size = (int(award_img.width * scale), int(award_img.height * scale))
+    award_img = award_img.resize(new_size, Image.NEAREST)
 
-# ==============================
-# IMAGE RENDERING (SYNC)
-# ==============================
+    width = max(award_img.width, 400)
+    height = award_img.height + 140
 
-def render_image(username, award_name, color_name, size_name):
-    coords = AWARDS[award_name]
-    award = SPRITE.crop(coords)
+    bg_color = (255, 255, 224) if banner else (0, 0, 0)
+    img = Image.new("RGBA", (width, height), bg_color)
 
-    scale = SIZES[size_name]
-    new_size = (int(award.width * scale), int(award.height * scale))
-    award = award.resize(new_size, Image.NEAREST)
-
-    width = max(award.width, 400)
-    height = award.height + 120
-
-    img = Image.new("RGBA", (width, height), (0, 0, 0, 255))
     draw = ImageDraw.Draw(img)
 
-    text_color = COLORS[color_name]
     text_width = draw.textlength(username, font=FONT)
-
     draw.text(
-        ((width - text_width) / 2, 30),
+        ((width - text_width) / 2, 20),
         username,
-        fill=text_color,
+        fill=COLORS[color],
         font=FONT
     )
 
     img.paste(
-        award,
-        ((width - award.width) // 2, 80),
-        award
+        award_img,
+        ((width - award_img.width) // 2, 70),
+        award_img
     )
 
     return img
 
-def cache_key(username, award, color, size):
-    raw = f"{username}-{award}-{color}-{size}"
-    return hashlib.md5(raw.encode()).hexdigest() + ".png"
+# =============== VIEW CLASS ===============
 
-async def get_or_create_image(username, award, color, size):
-    filename = cache_key(username, award, color, size)
-    path = os.path.join(CACHE_DIR, filename)
+class AwardView(discord.ui.View):
+    def __init__(self, user):
+        super().__init__(timeout=180)
+        self.user = user
+        self.selected_award = list(AWARDS.keys())[0]
+        self.selected_color = list(COLORS.keys())[0]
+        self.selected_size = "Default"
+        self.banner = False
 
-    if os.path.exists(path):
-        return path
+    async def update_preview(self, interaction):
+        img = render_preview(
+            self.user.display_name,
+            self.selected_award,
+            self.selected_color,
+            self.selected_size,
+            self.banner
+        )
 
-    loop = asyncio.get_running_loop()
-    img = await loop.run_in_executor(
-        None,
-        render_image,
-        username,
-        award,
-        color,
-        size
+        path = os.path.join(CACHE_DIR, "preview.png")
+        img.save(path)
+
+        await interaction.response.edit_message(
+            attachments=[discord.File(path)],
+            view=self
+        )
+
+    # ----- DROPDOWN -----
+
+    @discord.ui.select(
+        placeholder="Select Award",
+        options=[
+            discord.SelectOption(label=name)
+            for name in AWARDS.keys()
+        ]
+    )
+    async def award_select(self, interaction: discord.Interaction, select):
+        self.selected_award = select.values[0]
+        await self.update_preview(interaction)
+
+    # ----- COLOR BUTTONS -----
+
+    @discord.ui.button(label="Orange", style=discord.ButtonStyle.primary)
+    async def orange(self, interaction: discord.Interaction, button):
+        self.selected_color = "Orange"
+        await self.update_preview(interaction)
+
+    @discord.ui.button(label="Purple", style=discord.ButtonStyle.primary)
+    async def purple(self, interaction: discord.Interaction, button):
+        self.selected_color = "Purple"
+        await self.update_preview(interaction)
+
+    @discord.ui.button(label="Blue", style=discord.ButtonStyle.primary)
+    async def blue(self, interaction: discord.Interaction, button):
+        self.selected_color = "Blue"
+        await self.update_preview(interaction)
+
+    @discord.ui.button(label="Red", style=discord.ButtonStyle.primary)
+    async def red(self, interaction: discord.Interaction, button):
+        self.selected_color = "Red"
+        await self.update_preview(interaction)
+
+    # ----- BANNER TOGGLE -----
+
+    @discord.ui.button(label="Toggle Banner", style=discord.ButtonStyle.secondary)
+    async def toggle_banner(self, interaction: discord.Interaction, button):
+        self.banner = not self.banner
+        await self.update_preview(interaction)
+
+    # ----- SIZE DROPDOWN -----
+
+    @discord.ui.select(
+        placeholder="Select Size",
+        row=2,
+        options=[
+            discord.SelectOption(label=name)
+            for name in SIZES.keys()
+        ]
+    )
+    async def size_select(self, interaction: discord.Interaction, select):
+        self.selected_size = select.values[0]
+        await self.update_preview(interaction)
+
+# =============== COMMAND ===============
+
+@tree.command(name="award", description="Open award generator")
+async def award(interaction: discord.Interaction):
+
+    view = AwardView(interaction.user)
+
+    img = render_preview(
+        interaction.user.display_name,
+        view.selected_award,
+        view.selected_color,
+        view.selected_size,
+        view.banner
     )
 
+    path = os.path.join(CACHE_DIR, "preview.png")
     img.save(path)
-    return path
 
-# ==============================
-# SLASH COMMAND
-# ==============================
+    await interaction.response.send_message(
+        file=discord.File(path),
+        view=view
+    )
 
-@tree.command(name="award", description="Generate TankPit award")
-@app_commands.describe(
-    award="Select award",
-    color="Select color",
-    size="Select size"
-)
-async def award(interaction: discord.Interaction, award: str, color: str, size: str):
-
-    # ALWAYS acknowledge immediately
-    try:
-        await interaction.response.defer(thinking=True)
-    except discord.NotFound:
-        print("Interaction expired before defer.")
-        return
-
-    try:
-        if award not in AWARDS:
-            await interaction.followup.send("Invalid award.", ephemeral=True)
-            return
-
-        if color not in COLORS:
-            await interaction.followup.send("Invalid color.", ephemeral=True)
-            return
-
-        if size not in SIZES:
-            await interaction.followup.send("Invalid size.", ephemeral=True)
-            return
-
-        username = interaction.user.display_name
-        path = await get_or_create_image(username, award, color, size)
-
-        await interaction.followup.send(file=discord.File(path))
-
-    except Exception as e:
-        print("Error during award generation:", e)
-        try:
-            await interaction.followup.send("Something went wrong.", ephemeral=True)
-        except:
-            pass
-
-# ==============================
-# SYNC STRATEGY
-# ==============================
+# =============== SYNC ===============
 
 @bot.event
 async def on_ready():
 
     if SYNC_MODE == "dev":
-        if not GUILD_ID:
-            raise ValueError("GUILD_ID must be set in dev mode.")
-
         guild = discord.Object(id=GUILD_ID)
         await tree.sync(guild=guild)
-        print("Synced to development guild only.")
-
+        print("Synced to dev guild")
     else:
         await tree.sync()
-        print("Synced globally.")
+        print("Synced globally")
 
     print(f"Logged in as {bot.user}")
-    print(f"Total awards loaded: {len(AWARDS)}")
-
-# ==============================
-# RUN
-# ==============================
 
 bot.run(TOKEN)
