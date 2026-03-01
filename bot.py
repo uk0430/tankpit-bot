@@ -1,6 +1,5 @@
 import os
 import asyncio
-import hashlib
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -9,8 +8,7 @@ from PIL import Image, ImageDraw, ImageFont
 # ================= CONFIG =================
 
 TOKEN = os.getenv("DISCORD_TOKEN")
-SYNC_MODE = os.getenv("SYNC_MODE", "dev")
-GUILD_ID = int(os.getenv("GUILD_ID", "0"))
+GUILD_ID = int(os.getenv("GUILD_ID"))
 
 SPRITE_PATH = "assets/awards.gif"
 FONT_PATH = "fonts/Gamer-Bold.otf"
@@ -18,7 +16,7 @@ CACHE_DIR = "cache"
 
 os.makedirs(CACHE_DIR, exist_ok=True)
 
-# =============== VALIDATION ===============
+# ================= VALIDATION =================
 
 if not TOKEN:
     raise ValueError("DISCORD_TOKEN missing")
@@ -29,7 +27,7 @@ if not os.path.exists(SPRITE_PATH):
 if not os.path.exists(FONT_PATH):
     raise FileNotFoundError("fonts/Gamer-Bold.otf not found")
 
-# =============== BOT SETUP ===============
+# ================= BOT SETUP =================
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -38,7 +36,7 @@ tree = bot.tree
 SPRITE = Image.open(SPRITE_PATH).convert("RGBA")
 FONT = ImageFont.truetype(FONT_PATH, 32)
 
-# =============== DATA ===============
+# ================= DATA =================
 
 AWARDS = {
     "MVP": (0, 0, 64, 64),
@@ -59,7 +57,7 @@ SIZES = {
     "Large": 1.8,
 }
 
-# =============== RENDERING ===============
+# ================= RENDER =================
 
 def render_preview(username, award, color, size, banner):
     coords = AWARDS[award]
@@ -93,7 +91,7 @@ def render_preview(username, award, color, size, banner):
 
     return img
 
-# =============== VIEW CLASS ===============
+# ================= VIEW =================
 
 class AwardView(discord.ui.View):
     def __init__(self, user):
@@ -121,20 +119,13 @@ class AwardView(discord.ui.View):
             view=self
         )
 
-    # ----- DROPDOWN -----
-
     @discord.ui.select(
         placeholder="Select Award",
-        options=[
-            discord.SelectOption(label=name)
-            for name in AWARDS.keys()
-        ]
+        options=[discord.SelectOption(label=name) for name in AWARDS.keys()]
     )
     async def award_select(self, interaction: discord.Interaction, select):
         self.selected_award = select.values[0]
         await self.update_preview(interaction)
-
-    # ----- COLOR BUTTONS -----
 
     @discord.ui.button(label="Orange", style=discord.ButtonStyle.primary)
     async def orange(self, interaction: discord.Interaction, button):
@@ -156,32 +147,24 @@ class AwardView(discord.ui.View):
         self.selected_color = "Red"
         await self.update_preview(interaction)
 
-    # ----- BANNER TOGGLE -----
-
     @discord.ui.button(label="Toggle Banner", style=discord.ButtonStyle.secondary)
     async def toggle_banner(self, interaction: discord.Interaction, button):
         self.banner = not self.banner
         await self.update_preview(interaction)
 
-    # ----- SIZE DROPDOWN -----
-
     @discord.ui.select(
         placeholder="Select Size",
         row=2,
-        options=[
-            discord.SelectOption(label=name)
-            for name in SIZES.keys()
-        ]
+        options=[discord.SelectOption(label=name) for name in SIZES.keys()]
     )
     async def size_select(self, interaction: discord.Interaction, select):
         self.selected_size = select.values[0]
         await self.update_preview(interaction)
 
-# =============== COMMAND ===============
+# ================= COMMAND =================
 
 @tree.command(name="award", description="Open award generator")
 async def award(interaction: discord.Interaction):
-
     view = AwardView(interaction.user)
 
     img = render_preview(
@@ -200,19 +183,19 @@ async def award(interaction: discord.Interaction):
         view=view
     )
 
-# =============== SYNC ===============
+# ================= RESET SYNC =================
 
 @bot.event
 async def on_ready():
+    guild = discord.Object(id=GUILD_ID)
 
-    if SYNC_MODE == "dev":
-        guild = discord.Object(id=GUILD_ID)
-        await tree.sync(guild=guild)
-        print("Synced to dev guild")
-    else:
-        await tree.sync()
-        print("Synced globally")
+    # HARD RESET OLD SCHEMA
+    tree.clear_commands(guild=guild)
+    await tree.sync(guild=guild)
 
+    print("Guild commands wiped and re-synced.")
     print(f"Logged in as {bot.user}")
+
+# ================= RUN =================
 
 bot.run(TOKEN)
