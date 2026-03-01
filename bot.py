@@ -6,11 +6,12 @@ import asyncio
 import os
 import hashlib
 
-# =========================
+# ========================
 # CONFIG
-# =========================
+# ========================
 
 TOKEN = os.getenv("DISCORD_TOKEN")
+
 SPRITE_PATH = "awards.gif"
 FONT_PATH = "Gamer-Bold.otf"
 CACHE_DIR = "cache"
@@ -21,9 +22,9 @@ INTENTS = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=INTENTS)
 tree = bot.tree
 
-# =========================
-# AWARD DATA (EXAMPLE)
-# =========================
+# ========================
+# DATA
+# ========================
 
 AWARDS = {
     "MVP": (0, 0, 64, 64),
@@ -44,39 +45,44 @@ SIZES = {
     "large": 1.8,
 }
 
-# =========================
-# SAFE IMAGE RENDERING
-# =========================
+# ========================
+# PRELOAD ASSETS (IMPORTANT)
+# ========================
 
-def render_award_image(username, award_name, color_name, size_name):
-    sprite = Image.open(SPRITE_PATH).convert("RGBA")
-    font = ImageFont.truetype(FONT_PATH, 32)
+SPRITE = Image.open(SPRITE_PATH).convert("RGBA")
+FONT = ImageFont.truetype(FONT_PATH, 32)
+
+print("Assets preloaded successfully.")
+
+# ========================
+# RENDER FUNCTION (SYNC)
+# ========================
+
+def render_image(username, award_name, color_name, size_name):
 
     coords = AWARDS[award_name]
-    award = sprite.crop(coords)
+    award = SPRITE.crop(coords)
 
     scale = SIZES[size_name]
     new_size = (int(award.width * scale), int(award.height * scale))
     award = award.resize(new_size, Image.NEAREST)
 
-    padding = 40
     width = max(award.width, 400)
     height = award.height + 120
 
     img = Image.new("RGBA", (width, height), (0, 0, 0, 255))
     draw = ImageDraw.Draw(img)
 
-    # Username
     text_color = COLORS[color_name]
-    text_width = draw.textlength(username, font=font)
+    text_width = draw.textlength(username, font=FONT)
+
     draw.text(
         ((width - text_width) / 2, 30),
         username,
         fill=text_color,
-        font=font
+        font=FONT
     )
 
-    # Award
     img.paste(
         award,
         ((width - award.width) // 2, 80),
@@ -86,26 +92,28 @@ def render_award_image(username, award_name, color_name, size_name):
     return img
 
 
-# =========================
-# CACHING
-# =========================
+# ========================
+# CACHE
+# ========================
 
-def generate_cache_key(username, award, color, size):
+def cache_key(username, award, color, size):
     raw = f"{username}-{award}-{color}-{size}"
     return hashlib.md5(raw.encode()).hexdigest() + ".png"
 
 
 async def get_or_create_image(username, award, color, size):
-    filename = generate_cache_key(username, award, color, size)
+
+    filename = cache_key(username, award, color, size)
     path = os.path.join(CACHE_DIR, filename)
 
     if os.path.exists(path):
         return path
 
     loop = asyncio.get_running_loop()
+
     img = await loop.run_in_executor(
         None,
-        render_award_image,
+        render_image,
         username,
         award,
         color,
@@ -116,26 +124,26 @@ async def get_or_create_image(username, award, color, size):
     return path
 
 
-# =========================
-# SLASH COMMAND
-# =========================
+# ========================
+# COMMAND
+# ========================
 
-@tree.command(name="award", description="Generate a TankPit award card")
+@tree.command(name="award", description="Generate TankPit award")
 @app_commands.describe(
     award="Select award",
     color="Select color",
     size="Select size"
 )
-async def award(
-    interaction: discord.Interaction,
-    award: str,
-    color: str,
-    size: str
-):
-    try:
-        # 🔥 MUST BE FIRST
-        await interaction.response.defer(thinking=True)
+async def award(interaction: discord.Interaction, award: str, color: str, size: str):
 
+    # ALWAYS ACK FIRST
+    try:
+        await interaction.response.defer(thinking=True)
+    except discord.NotFound:
+        print("Interaction expired before defer")
+        return
+
+    try:
         if award not in AWARDS:
             await interaction.followup.send("Invalid award.", ephemeral=True)
             return
@@ -156,51 +164,22 @@ async def award(
         await interaction.followup.send(file=file)
 
     except Exception as e:
-        await interaction.followup.send(
-            f"Error generating award: {str(e)}",
-            ephemeral=True
-        )
+        print("Error:", e)
+        try:
+            await interaction.followup.send("Something went wrong.", ephemeral=True)
+        except:
+            pass
 
 
-# =========================
-# AUTOCOMPLETE
-# =========================
-
-@award.autocomplete("award")
-async def award_autocomplete(interaction: discord.Interaction, current: str):
-    return [
-        app_commands.Choice(name=name, value=name)
-        for name in AWARDS
-        if current.lower() in name.lower()
-    ][:25]
-
-
-@award.autocomplete("color")
-async def color_autocomplete(interaction: discord.Interaction, current: str):
-    return [
-        app_commands.Choice(name=name, value=name)
-        for name in COLORS
-        if current.lower() in name.lower()
-    ][:25]
-
-
-@award.autocomplete("size")
-async def size_autocomplete(interaction: discord.Interaction, current: str):
-    return [
-        app_commands.Choice(name=name, value=name)
-        for name in SIZES
-        if current.lower() in name.lower()
-    ][:25]
-
-
-# =========================
-# READY EVENT
-# =========================
+# ========================
+# READY
+# ========================
 
 @bot.event
 async def on_ready():
     await tree.sync()
-    print(f"Bot ready as {bot.user}")
+    print(f"Logged in as {bot.user}")
+    print(f"Total awards loaded: {len(AWARDS)}")
 
 
 bot.run(TOKEN)
