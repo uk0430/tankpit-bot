@@ -12,13 +12,26 @@ from PIL import Image, ImageDraw, ImageFont
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 SYNC_MODE = os.getenv("SYNC_MODE", "dev")  # dev or global
-GUILD_ID = int(os.getenv("GUILD_ID", "0"))  # required in dev mode
+GUILD_ID = int(os.getenv("GUILD_ID", "0"))
 
-SPRITE_PATH = "awards.gif"
-FONT_PATH = "Gamer-Bold.otf"
+SPRITE_PATH = "assets/awards.gif"
+FONT_PATH = "fonts/Gamer-Bold.otf"
 CACHE_DIR = "cache"
 
 os.makedirs(CACHE_DIR, exist_ok=True)
+
+# ==============================
+# VALIDATION
+# ==============================
+
+if not TOKEN:
+    raise ValueError("DISCORD_TOKEN is missing.")
+
+if not os.path.exists(SPRITE_PATH):
+    raise FileNotFoundError(f"{SPRITE_PATH} not found.")
+
+if not os.path.exists(FONT_PATH):
+    raise FileNotFoundError(f"{FONT_PATH} not found.")
 
 # ==============================
 # BOT SETUP
@@ -58,10 +71,10 @@ SIZES = {
 SPRITE = Image.open(SPRITE_PATH).convert("RGBA")
 FONT = ImageFont.truetype(FONT_PATH, 32)
 
-print("Assets preloaded.")
+print("Assets loaded successfully.")
 
 # ==============================
-# IMAGE RENDERING (NON-BLOCKING SAFE)
+# IMAGE RENDERING (SYNC)
 # ==============================
 
 def render_image(username, award_name, color_name, size_name):
@@ -96,11 +109,9 @@ def render_image(username, award_name, color_name, size_name):
 
     return img
 
-
 def cache_key(username, award, color, size):
     raw = f"{username}-{award}-{color}-{size}"
     return hashlib.md5(raw.encode()).hexdigest() + ".png"
-
 
 async def get_or_create_image(username, award, color, size):
     filename = cache_key(username, award, color, size)
@@ -122,7 +133,6 @@ async def get_or_create_image(username, award, color, size):
     img.save(path)
     return path
 
-
 # ==============================
 # SLASH COMMAND
 # ==============================
@@ -135,11 +145,11 @@ async def get_or_create_image(username, award, color, size):
 )
 async def award(interaction: discord.Interaction, award: str, color: str, size: str):
 
-    # ALWAYS ACKNOWLEDGE FIRST
+    # ALWAYS acknowledge immediately
     try:
         await interaction.response.defer(thinking=True)
     except discord.NotFound:
-        print("Interaction expired before defer")
+        print("Interaction expired before defer.")
         return
 
     try:
@@ -161,15 +171,14 @@ async def award(interaction: discord.Interaction, award: str, color: str, size: 
         await interaction.followup.send(file=discord.File(path))
 
     except Exception as e:
-        print("Error:", e)
+        print("Error during award generation:", e)
         try:
             await interaction.followup.send("Something went wrong.", ephemeral=True)
         except:
             pass
 
-
 # ==============================
-# SYNC STRATEGY (PROFESSIONAL)
+# SYNC STRATEGY
 # ==============================
 
 @bot.event
@@ -177,7 +186,7 @@ async def on_ready():
 
     if SYNC_MODE == "dev":
         if not GUILD_ID:
-            raise ValueError("GUILD_ID required in dev mode")
+            raise ValueError("GUILD_ID must be set in dev mode.")
 
         guild = discord.Object(id=GUILD_ID)
         await tree.sync(guild=guild)
@@ -189,7 +198,6 @@ async def on_ready():
 
     print(f"Logged in as {bot.user}")
     print(f"Total awards loaded: {len(AWARDS)}")
-
 
 # ==============================
 # RUN
