@@ -27,6 +27,7 @@ load_dotenv()
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 GUILD_ID = int(os.getenv("GUILD_ID"))
+GUILD_ID_2 = int(os.getenv("GUILD_ID_2"))
 
 if not TOKEN:
     raise ValueError("DISCORD_TOKEN missing")
@@ -217,6 +218,7 @@ intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 tree = bot.tree
 GUILD = discord.Object(id=GUILD_ID)
+GUILD2 = discord.Object(id=GUILD_ID_2)
 
 # ==========================
 # UI
@@ -346,16 +348,18 @@ async def award(interaction: discord.Interaction, tank_name: str):
     await interaction.response.send_message(_award_content(name), view=view, ephemeral=True)
     view.message = await interaction.original_response()
 
+tree.add_command(award, guild=GUILD2)
+
 # ==========================
 # READY + SYNC
 # ==========================
 
 @bot.event
 async def on_ready():
-    guild = discord.Object(id=GUILD_ID)
-    await tree.sync(guild=guild)
+    for guild_obj in [GUILD, GUILD2]:
+        await tree.sync(guild=guild_obj)
     log.info(f"Logged in as {bot.user}")
-    log.info("Award command synced.")
+    log.info("Award command synced to both guilds.")
 
 @tree.error
 async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
