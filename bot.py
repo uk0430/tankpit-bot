@@ -222,34 +222,48 @@ GUILD = discord.Object(id=GUILD_ID)
 # SLASH COMMAND
 # ==========================
 
-@tree.command(name="award", description="Generate TankPit award banner", guild=GUILD)
-@app_commands.describe(
-    tank_name="Tank or player name",
-    awards="Comma-separated award keys (e.g. gold_cup,single_star,purple_heart)",
-    color="Name color (default: Blue)",
-)
-@app_commands.choices(color=[
+_AWARD_CHOICES = [
+    app_commands.Choice(name=info["display"], value=key)
+    for key, info in AWARDS.items()
+]
+
+_COLOR_CHOICES = [
     app_commands.Choice(name=name, value=name) for name in OFFICIAL_COLORS
-])
+]
+
+_SIZE_CHOICES = [
+    app_commands.Choice(name=name, value=name) for name in SIZE_OPTIONS
+]
+
+@tree.command(name="award", description="Generate a TankPit award banner for a tank or player", guild=GUILD)
+@app_commands.describe(
+    tank_name="Tank or player name to display on the banner",
+    award_1="First award to display",
+    award_2="Second award (optional)",
+    award_3="Third award (optional)",
+    color="Name text color (default: Blue)",
+    size="Banner size (default: Default)",
+)
+@app_commands.choices(award_1=_AWARD_CHOICES, award_2=_AWARD_CHOICES, award_3=_AWARD_CHOICES)
+@app_commands.choices(color=_COLOR_CHOICES)
+@app_commands.choices(size=_SIZE_CHOICES)
 async def award(
     interaction: discord.Interaction,
     tank_name: str,
-    awards: str = None,
+    award_1: app_commands.Choice[str] = None,
+    award_2: app_commands.Choice[str] = None,
+    award_3: app_commands.Choice[str] = None,
     color: app_commands.Choice[str] = None,
+    size: app_commands.Choice[str] = None,
 ):
     try:
         await interaction.response.defer()
         tank_name = tank_name.strip().strip(",")
 
-        award_keys = []
-        if awards:
-            for key in awards.split(","):
-                key = key.strip()
-                if key in AWARDS:
-                    award_keys.append(key)
-
-        sorted_awards = sort_awards(award_keys)
+        raw_keys = [c.value for c in [award_1, award_2, award_3] if c is not None]
+        sorted_awards = sort_awards(raw_keys)
         chosen_color = OFFICIAL_COLORS[color.value if color else "Blue"]
+        chosen_size = size.value if size else "Default"
 
         loop = asyncio.get_event_loop()
         image_path = await loop.run_in_executor(
@@ -259,11 +273,11 @@ async def award(
             sorted_awards,
             chosen_color,
             False,
-            "Default",
+            chosen_size,
         )
 
         await interaction.followup.send(file=discord.File(image_path))
-        log.info(f"/award: {tank_name} | awards={sorted_awards} | color={color and color.value}")
+        log.info(f"/award: {tank_name} | awards={sorted_awards} | color={color and color.value} | size={chosen_size}")
 
     except Exception as e:
         log.exception(f"/award failed for '{tank_name}': {e}")
