@@ -3,6 +3,7 @@ import json
 import os
 import hashlib
 import logging
+import time
 import numpy as np
 import requests
 from dotenv import load_dotenv
@@ -157,6 +158,50 @@ CATEGORIES = {
 
 CATEGORY_ORDER = ["stars","tanks","medals","swords","dot","cups","ph","wc","lb"]
 
+# Awards array index → ordered keys (matches AWARD_TIERS / API awards array)
+AWARD_KEYS_BY_INDEX = [
+    ["single_star",      "double_star",       "triple_star"],
+    ["bronze_tank",      "silver_tank",       "golden_tank"],
+    ["combat_honor",     "battle_honor",      "heroic_honor"],
+    ["shining_sword",    "battered_sword",    "rusty_sword"],
+    ["defender_truth",   "defender_truth",    "defender_truth"],
+    ["bronze_cup",       "silver_cup",        "gold_cup"],
+    ["purple_heart",     "purple_heart",      "purple_heart"],
+    ["war_correspondent","war_correspondent", "war_correspondent"],
+    ["lightbulb",        "lightbulb",         "lightbulb"],
+]
+
+# ==========================
+# LEADERBOARD IMAGE CONSTANTS
+# ==========================
+
+_LB_BG          = (15,  21,  26)   # #0F151A
+_LB_HEADER_BG   = (62,  84,  99)   # #3e5463
+_LB_COL_BG      = (42,  56,  64)   # #2a3840
+_LB_MUTED       = (140, 168, 180)
+_LB_FACTION     = {
+    "red":    (255, 102, 102),
+    "purple": (204, 102, 204),
+    "blue":   (102, 102, 255),
+    "orange": (255, 204, 102),
+}
+_LB_ROW_DEFAULT = (35, 50, 60)
+_LB_BLACK       = (0,   0,   0)
+_LB_LIGHT       = (220, 230, 235)
+
+_LB_W        = 700
+_LB_HEADER_H = 54
+_LB_COLHDR_H = 28
+_LB_ROW_H    = 36
+_LB_ROW_GAP  = 3
+_LB_FOOTER_H = 30
+
+# Column x positions
+_LB_COL_PLACE = 12
+_LB_COL_NAME  = 55
+_LB_COL_RANK  = 268
+_LB_COL_AWARD = 390
+
 # ==========================
 # HELPERS
 # ==========================
@@ -226,6 +271,99 @@ def generate_award_banner(name, award_keys, color, banner=False, size_mode="Defa
     for icon in icons:
         img.paste(icon,(x,y),icon)
         x += icon.width+spacing
+
+    img.save(cache_path)
+    return cache_path
+
+
+def generate_leaderboard_image(entries: list, title: str, page: int = 1, total_pages: int = 1) -> str:
+    cache_string = f"{title}_p{page}_{json.dumps(entries, sort_keys=True)}"
+    cache_hash = hashlib.md5(cache_string.encode()).hexdigest()
+    cache_path = os.path.join(CACHE_FOLDER, f"lb_{cache_hash}.png")
+    if os.path.exists(cache_path):
+        return cache_path
+
+    n = len(entries)
+    total_h = _LB_HEADER_H + _LB_COLHDR_H + n * _LB_ROW_H + max(0, n - 1) * _LB_ROW_GAP + _LB_FOOTER_H
+
+    img  = Image.new("RGB", (_LB_W, total_h), _LB_BG)
+    draw = ImageDraw.Draw(img)
+
+    font_title        = ImageFont.truetype(FONT_PATH, 28)
+    font_col          = ImageFont.truetype(FONT_PATH, 12)
+    font_name         = ImageFont.truetype(FONT_PATH, 13)
+    font_rank         = ImageFont.truetype(FONT_PATH, 11)
+    font_place_lg     = ImageFont.truetype(FONT_PATH, 20)   # #1
+    font_place_md     = ImageFont.truetype(FONT_PATH, 16)   # #2-3
+    font_place_sm     = ImageFont.truetype(FONT_PATH, 14)   # rest
+
+    # Header
+    draw.rectangle([0, 0, _LB_W, _LB_HEADER_H], fill=_LB_HEADER_BG)
+    tb = draw.textbbox((0, 0), title, font=font_title)
+    draw.text(
+        ((_LB_W - (tb[2] - tb[0])) // 2, (_LB_HEADER_H - (tb[3] - tb[1])) // 2),
+        title, fill=(255, 255, 255), font=font_title,
+    )
+
+    # Column headers
+    cy = _LB_HEADER_H
+    draw.rectangle([0, cy, _LB_W, cy + _LB_COLHDR_H], fill=_LB_COL_BG)
+    for label, cx in [("#", _LB_COL_PLACE), ("Name", _LB_COL_NAME), ("Rank", _LB_COL_RANK), ("Awards", _LB_COL_AWARD)]:
+        draw.text((cx, cy + 8), label, fill=_LB_MUTED, font=font_col)
+
+    sprite = Image.open(SPRITE_PATH).convert("RGBA")
+    ry = _LB_HEADER_H + _LB_COLHDR_H
+
+    for entry in entries:
+        placing = entry.get("placing", 0)
+        name    = str(entry.get("name", "Unknown"))
+        rank    = str(entry.get("rank") or "").capitalize()
+        ck      = (entry.get("color") or "").lower()
+        awards  = entry.get("awards") or []
+
+        bg   = _LB_FACTION.get(ck, _LB_ROW_DEFAULT)
+        tcol = _LB_BLACK if ck in _LB_FACTION else _LB_LIGHT
+
+        draw.rectangle([0, ry, _LB_W, ry + _LB_ROW_H], fill=bg)
+
+        # Placing number
+        if placing == 1:
+            pf = font_place_lg
+        elif placing in (2, 3):
+            pf = font_place_md
+        else:
+            pf = font_place_sm
+        ps = str(placing)
+        pb = draw.textbbox((0, 0), ps, font=pf)
+        draw.text(
+            (_LB_COL_PLACE + (35 - (pb[2] - pb[0])) // 2, ry + (_LB_ROW_H - (pb[3] - pb[1])) // 2),
+            ps, fill=tcol, font=pf,
+        )
+
+        # Name
+        nb = draw.textbbox((0, 0), name, font=font_name)
+        draw.text((_LB_COL_NAME, ry + (_LB_ROW_H - (nb[3] - nb[1])) // 2), name, fill=tcol, font=font_name)
+
+        # Rank
+        rb = draw.textbbox((0, 0), rank, font=font_rank)
+        draw.text((_LB_COL_RANK, ry + (_LB_ROW_H - (rb[3] - rb[1])) // 2), rank, fill=tcol, font=font_rank)
+
+        # Award icons
+        ax = _LB_COL_AWARD
+        ay = ry + (_LB_ROW_H - ICON_HEIGHT) // 2
+        for i, val in enumerate(awards):
+            if val and i < len(AWARD_KEYS_BY_INDEX):
+                keys = AWARD_KEYS_BY_INDEX[i]
+                key  = keys[min(val, len(keys)) - 1]
+                icon = crop_award(sprite, AWARDS[key]["class"])
+                img.paste(icon, (ax, ay), icon)
+                ax += icon.width + 2
+
+        ry += _LB_ROW_H + _LB_ROW_GAP
+
+    # Footer
+    ft = f"Page {page} of {total_pages}  •  /leaderboard year:... top:..."
+    draw.text((_LB_COL_PLACE, total_h - _LB_FOOTER_H + 8), ft, fill=_LB_MUTED, font=font_col)
 
     img.save(cache_path)
     return cache_path
@@ -605,27 +743,25 @@ async def leaderboard(
         await interaction.followup.send(f"No leaderboard data for **{year}**.")
         return
 
-    embed = discord.Embed(
-        title=f"TankPit Leaderboard — {year.capitalize()}",
-        color=0xFF9000,
-    )
+    title       = f"TankPit Leaderboard — {year.capitalize()}"
+    total_pages = data.get("total_pages", 1)
 
-    lines = []
-    for entry in results:
-        placing = entry.get("placing", "?")
-        name = entry.get("name", "Unknown")
-        rank = entry.get("rank", "").lower()
-        color = entry.get("color", "").lower()
-        awards = decode_awards(entry.get("awards", []))
-        rank_icon = RANK_EMOJI.get(rank, "▫️")
-        color_icon = COLOR_EMOJI.get(color, "⚫")
-        medal = {1: "🥇", 2: "🥈", 3: "🥉"}.get(placing, f"`#{placing}`")
-        lines.append(f"{medal} {color_icon} **{name}** {rank_icon} {rank}")
+    image_path = await asyncio.to_thread(generate_leaderboard_image, results, title, 1, total_pages)
 
-    embed.description = "\n".join(lines)
-    embed.set_footer(text=f"Page 1 of {data.get('total_pages', '?')} • /leaderboard year:2024 top:25")
+    # Small embed with top-3 clickable names
+    embed = discord.Embed(color=0xFF9000)
+    top3_lines = []
+    for entry in results[:3]:
+        placing  = entry.get("placing")
+        name     = entry.get("name", "Unknown")
+        tank_id  = entry.get("tank_id")
+        url      = f"https://tankpit.com/tank/{tank_id}" if tank_id else "https://tankpit.com"
+        medal    = {1: "🥇", 2: "🥈", 3: "🥉"}.get(placing, "")
+        top3_lines.append(f"{medal} [{name}]({url})")
+    embed.description = "\n".join(top3_lines)
+    embed.set_footer(text=f"Page 1 of {total_pages} • /leaderboard year:{year} top:{top}")
 
-    await interaction.followup.send(embed=embed)
+    await interaction.followup.send(file=discord.File(image_path), embed=embed)
     log.info(f"/leaderboard: year={year} top={top}")
 
 tree.add_command(leaderboard, guild=GUILD2)
@@ -633,6 +769,15 @@ tree.add_command(leaderboard, guild=GUILD2)
 # ==========================
 # /ask COMMAND
 # ==========================
+
+_ASK_CACHE: dict[str, tuple[str, float]] = {}  # question -> (answer, expiry_timestamp)
+_ASK_RANK_KW = {"leaderboard", "rank", "ranking", "top", "best", "score", "place", "placing"}
+
+
+def _ask_ttl(question: str) -> float:
+    """5-min TTL for leaderboard/rank questions, 1-hour for everything else."""
+    return 300.0 if set(question.lower().split()) & _ASK_RANK_KW else 3600.0
+
 
 def _rag_query(question: str) -> str:
     """Blocking: embed question, find top-3 chunks, query Mistral. Returns answer string."""
@@ -681,20 +826,74 @@ def _rag_query(question: str) -> str:
 )
 async def ask(interaction: discord.Interaction, question: str, private: bool = False):
     await interaction.response.defer(ephemeral=private)
-    try:
-        answer = await asyncio.to_thread(_rag_query, question)
-    except Exception as e:
-        log.exception(f"/ask failed for '{question}': {e}")
-        await interaction.followup.send(f"Error querying AI: `{e}`", ephemeral=True)
-        return
 
-    if len(answer) > 1900:
-        answer = answer[:1897] + "…"
+    # In-memory cache check
+    cached = _ASK_CACHE.get(question)
+    if cached and time.time() < cached[1]:
+        answer = cached[0]
+        log.info(f"/ask (cached): q={question!r}")
+    else:
+        try:
+            answer = await asyncio.to_thread(_rag_query, question)
+        except Exception as e:
+            log.exception(f"/ask failed for '{question}': {e}")
+            await interaction.followup.send(f"Error querying AI: `{e}`", ephemeral=True)
+            return
+        _ASK_CACHE[question] = (answer, time.time() + _ask_ttl(question))
+
+    if len(answer) > 4096:
+        answer = answer[:4093] + "…"
+
+    embed = discord.Embed(
+        title=question[:256],
+        description=answer,
+        color=0xFF9000,
+    )
+    embed.set_author(
+        name=interaction.user.display_name,
+        icon_url=str(interaction.user.display_avatar.url),
+    )
 
     log.info(f"/ask: q={question!r} private={private}")
-    await interaction.followup.send(answer, ephemeral=private)
+    await interaction.followup.send(embed=embed, ephemeral=private)
 
 tree.add_command(ask, guild=GUILD2)
+
+# ==========================
+# /help COMMAND
+# ==========================
+
+@tree.command(name="help", description="Show all TankPit Bot commands", guild=GUILD)
+async def help_command(interaction: discord.Interaction):
+    embed = discord.Embed(title="TankPit Bot Commands", color=0xFF9000)
+    embed.add_field(
+        name="/award",
+        value="Generate a custom award banner.\nExample: `/award tank_name:Grimlock`",
+        inline=False,
+    )
+    embed.add_field(
+        name="/tank",
+        value="Look up a player profile.\nExample: `/tank tank_name:Frinzee`",
+        inline=False,
+    )
+    embed.add_field(
+        name="/leaderboard",
+        value="Show the leaderboard.\nExample: `/leaderboard year:2024 top:10`",
+        inline=False,
+    )
+    embed.add_field(
+        name="/ask",
+        value="Ask the TankPit AI a question.\nExample: `/ask question:What is the Defender of Truth award?`",
+        inline=False,
+    )
+    embed.add_field(
+        name="/help",
+        value="Show this help message.",
+        inline=False,
+    )
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
+tree.add_command(help_command, guild=GUILD2)
 
 # ==========================
 # READY + SYNC

@@ -644,3 +644,410 @@ requests.exceptions.ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8
 2026-03-16 11:00:08,978 [INFO] /leaderboard: year=overall top=25
 2026-03-16 11:00:33,402 [INFO] /ask: q='What awards are in tankpit' private=False
 2026-03-16 11:00:53,795 [INFO] /award: Grimlock | awards=['single_star'] | color=Purple | size=Default
+2026-03-16 12:24:02,074 [ERROR] Unhandled app command error: Command 'award' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 368, in award
+    await interaction.response.send_message(_award_content(name), view=view, ephemeral=True)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'award' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-16 12:24:02,140 [ERROR] Task exception was never retrieved
+future: <Task finished name='CommandTree-invoker' coro=<CommandTree._from_interaction.<locals>.wrapper() done, defined at /home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py:1136> exception=NotFound('404 Not Found (error code: 10062): Unknown interaction')>
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 368, in award
+    await interaction.response.send_message(_award_content(name), view=view, ephemeral=True)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'award' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
+    await self._call(interaction)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1301, in _call
+    await self.on_error(interaction, e)
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 714, in on_app_command_error
+    await interaction.response.send_message(f"Unexpected error: `{error}`", ephemeral=True)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-16 12:27:36,887 [INFO] /award: Grimlock | awards=['triple_star', 'bronze_tank', 'combat_honor', 'bronze_cup', 'purple_heart', 'lightbulb'] | color=Blue | size=Large
+2026-03-16 12:28:32,242 [INFO] /ask: q='Top ten overall ranking' private=False
+2026-03-16 12:30:53,187 [INFO] /leaderboard: year=2026 top=10
+2026-03-16 12:46:37,587 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-16 12:46:37,590 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-16 12:46:37,591 [INFO] logging in using static token
+2026-03-16 12:46:38,195 [INFO] Shard ID None has connected to Gateway (Session ID: 48365f10ba4a84b5a602076c99888fc4).
+2026-03-16 12:46:40,314 [INFO] Synced 4 command(s) to guild 615551999701811221
+2026-03-16 12:46:40,444 [INFO] Synced 4 command(s) to guild 311890399767822359
+2026-03-16 12:46:40,444 [INFO] Logged in as TankPitBot#0095
+2026-03-16 12:48:19,047 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-16 12:48:19,051 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-16 12:48:19,051 [INFO] logging in using static token
+2026-03-16 12:48:19,611 [INFO] Shard ID None has connected to Gateway (Session ID: 54b6a59098f349cbf5f4bf4470cc0dff).
+2026-03-16 12:48:21,761 [INFO] Synced 4 command(s) to guild 615551999701811221
+2026-03-16 12:48:21,858 [INFO] Synced 4 command(s) to guild 311890399767822359
+2026-03-16 12:48:21,858 [INFO] Logged in as TankPitBot#0095
+2026-03-16 12:52:08,668 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-16 12:52:08,671 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-16 12:52:08,672 [INFO] logging in using static token
+2026-03-16 12:52:09,604 [INFO] Shard ID None has connected to Gateway (Session ID: 575f95f0c3df81e7b52340480936e2b1).
+2026-03-16 12:52:11,710 [INFO] Synced 4 command(s) to guild 615551999701811221
+2026-03-16 12:52:11,825 [INFO] Synced 4 command(s) to guild 311890399767822359
+2026-03-16 12:52:11,825 [INFO] Logged in as TankPitBot#0095
+2026-03-16 12:54:12,187 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-16 12:54:12,189 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-16 12:54:12,190 [INFO] logging in using static token
+2026-03-16 12:54:13,102 [INFO] Shard ID None has connected to Gateway (Session ID: 7eb69e47ba85bdf75d280f4cf5b4bc8b).
+2026-03-16 12:54:15,339 [INFO] Synced 5 command(s) to guild 615551999701811221
+2026-03-16 12:54:15,484 [INFO] Synced 5 command(s) to guild 311890399767822359
+2026-03-16 12:54:15,485 [INFO] Logged in as TankPitBot#0095
+2026-03-16 12:54:41,115 [ERROR] Unhandled app command error: Application command 'help' not found
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
+    await self._call(interaction)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
+    command, options = self._get_app_command_options(data)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
+    raise CommandNotFound(name, parents)
+discord.app_commands.errors.CommandNotFound: Application command 'help' not found
+2026-03-16 12:54:41,220 [ERROR] Task exception was never retrieved
+future: <Task finished name='CommandTree-invoker' coro=<CommandTree._from_interaction.<locals>.wrapper() done, defined at /home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py:1136> exception=NotFound('404 Not Found (error code: 10062): Unknown interaction')>
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
+    await self._call(interaction)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
+    command, options = self._get_app_command_options(data)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
+    raise CommandNotFound(name, parents)
+discord.app_commands.errors.CommandNotFound: Application command 'help' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1140, in wrapper
+    await self._dispatch_error(interaction, e)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1133, in _dispatch_error
+    await self.on_error(interaction, error)
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 877, in on_app_command_error
+    inline=False,
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-16 12:54:59,048 [ERROR] Unhandled app command error: Command 'leaderboard' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 730, in leaderboard
+    await interaction.response.defer()
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 858, in defer
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'leaderboard' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-16 12:54:59,103 [ERROR] Task exception was never retrieved
+future: <Task finished name='CommandTree-invoker' coro=<CommandTree._from_interaction.<locals>.wrapper() done, defined at /home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py:1136> exception=HTTPException('400 Bad Request (error code: 40060): Interaction has already been acknowledged.')>
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 730, in leaderboard
+    await interaction.response.defer()
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 858, in defer
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'leaderboard' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
+    await self._call(interaction)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1301, in _call
+    await self.on_error(interaction, e)
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 913, in on_app_command_error
+    await interaction.response.send_message(f"Unexpected error: `{error}`", ephemeral=True)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 226, in request
+    raise HTTPException(response, data)
+discord.errors.HTTPException: 400 Bad Request (error code: 40060): Interaction has already been acknowledged.
+2026-03-16 12:55:00,291 [INFO] /leaderboard: year=overall top=10
+2026-03-16 12:55:27,120 [ERROR] Unhandled app command error: Command 'leaderboard' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 730, in leaderboard
+    await interaction.response.defer()
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 858, in defer
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'leaderboard' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-16 12:55:27,208 [ERROR] Task exception was never retrieved
+future: <Task finished name='CommandTree-invoker' coro=<CommandTree._from_interaction.<locals>.wrapper() done, defined at /home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py:1136> exception=NotFound('404 Not Found (error code: 10062): Unknown interaction')>
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 730, in leaderboard
+    await interaction.response.defer()
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 858, in defer
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'leaderboard' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
+    await self._call(interaction)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1301, in _call
+    await self.on_error(interaction, e)
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 877, in on_app_command_error
+    inline=False,
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-16 12:55:28,242 [INFO] /leaderboard: year=overall top=10
+2026-03-16 12:55:43,875 [ERROR] Unhandled app command error: Command 'leaderboard' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 730, in leaderboard
+    await interaction.response.defer()
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 858, in defer
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'leaderboard' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-16 12:55:43,946 [ERROR] Task exception was never retrieved
+future: <Task finished name='CommandTree-invoker' coro=<CommandTree._from_interaction.<locals>.wrapper() done, defined at /home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py:1136> exception=NotFound('404 Not Found (error code: 10062): Unknown interaction')>
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 730, in leaderboard
+    await interaction.response.defer()
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 858, in defer
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'leaderboard' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
+    await self._call(interaction)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1301, in _call
+    await self.on_error(interaction, e)
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 913, in on_app_command_error
+    await interaction.response.send_message(f"Unexpected error: `{error}`", ephemeral=True)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-16 12:55:44,814 [INFO] /leaderboard: year=2026 top=25
+2026-03-16 12:56:14,005 [ERROR] Unhandled app command error: Command 'ask' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 828, in ask
+    await interaction.response.defer(ephemeral=private)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 858, in defer
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'ask' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-16 12:56:14,069 [ERROR] Task exception was never retrieved
+future: <Task finished name='CommandTree-invoker' coro=<CommandTree._from_interaction.<locals>.wrapper() done, defined at /home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py:1136> exception=NotFound('404 Not Found (error code: 10062): Unknown interaction')>
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 828, in ask
+    await interaction.response.defer(ephemeral=private)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 858, in defer
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'ask' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
+    await self._call(interaction)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1301, in _call
+    await self.on_error(interaction, e)
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 877, in on_app_command_error
+    inline=False,
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-16 12:56:17,884 [INFO] /ask: q='What is defender of Truth Award' private=False
