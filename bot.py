@@ -1,3 +1,4 @@
+import asyncio
 import os
 import hashlib
 import logging
@@ -238,6 +239,8 @@ async def award(
 ):
     try:
         await interaction.response.defer()
+        tank_name = tank_name.strip().strip(",")
+
         award_keys = []
         if awards:
             for key in awards.split(","):
@@ -248,12 +251,15 @@ async def award(
         sorted_awards = sort_awards(award_keys)
         chosen_color = OFFICIAL_COLORS[color.value if color else "Blue"]
 
-        image_path = generate_award_banner(
+        loop = asyncio.get_event_loop()
+        image_path = await loop.run_in_executor(
+            None,
+            generate_award_banner,
             tank_name,
             sorted_awards,
             chosen_color,
             False,
-            "Default"
+            "Default",
         )
 
         await interaction.followup.send(file=discord.File(image_path))
