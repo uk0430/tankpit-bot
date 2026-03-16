@@ -485,28 +485,27 @@ class TankSelectView(discord.ui.View):
 @tree.command(name="tank", description="Look up a TankPit player profile by name", guild=GUILD)
 @app_commands.describe(tank_name="Tank or player name to search for")
 async def tank_lookup(interaction: discord.Interaction, tank_name: str):
-    await interaction.response.defer(ephemeral=True)
+    await interaction.response.send_message("Searching…", ephemeral=True)
     try:
         results = await fetch_tank_search(tank_name.strip())
     except aiohttp.ClientResponseError as e:
         log.warning(f"/tank search error for '{tank_name}': {e.status} {e.message}")
-        await interaction.followup.send(f"API error: `{e.status} {e.message}`", ephemeral=True)
+        await interaction.edit_original_response(content=f"API error: `{e.status} {e.message}`")
         return
     except Exception as e:
         log.exception(f"/tank failed for '{tank_name}': {e}")
-        await interaction.followup.send(f"Failed to reach TankPit API: `{e}`", ephemeral=True)
+        await interaction.edit_original_response(content=f"Failed to reach TankPit API: `{e}`")
         return
 
     if not results:
-        await interaction.followup.send(f"No tanks found for **{tank_name}**.", ephemeral=True)
+        await interaction.edit_original_response(content=f"No tanks found for **{tank_name}**.")
         return
 
     if len(results) > 1:
         view = TankSelectView(results)
-        await interaction.followup.send(
-            f"Found **{len(results)}** tanks matching **{tank_name}** — pick one:",
+        await interaction.edit_original_response(
+            content=f"Found **{len(results)}** tanks matching **{tank_name}** — pick one:",
             view=view,
-            ephemeral=True,
         )
         return
 
@@ -516,15 +515,15 @@ async def tank_lookup(interaction: discord.Interaction, tank_name: str):
         profile = await fetch_tank_profile(tank_id)
     except aiohttp.ClientResponseError as e:
         log.warning(f"/tank profile error (id={tank_id}): {e.status} {e.message}")
-        await interaction.followup.send(f"API error fetching profile: `{e.status} {e.message}`", ephemeral=True)
+        await interaction.edit_original_response(content=f"API error fetching profile: `{e.status} {e.message}`")
         return
     except Exception as e:
         log.exception(f"/tank profile fetch failed (id={tank_id}): {e}")
-        await interaction.followup.send(f"Failed to load profile: `{e}`", ephemeral=True)
+        await interaction.edit_original_response(content=f"Failed to load profile: `{e}`")
         return
 
     log.info(f"/tank: {profile.get('name')} (id={tank_id})")
-    await interaction.followup.send(embed=build_tank_embed(profile), ephemeral=True)
+    await interaction.edit_original_response(content=None, embed=build_tank_embed(profile))
 
 tree.add_command(tank_lookup, guild=GUILD2)
 
