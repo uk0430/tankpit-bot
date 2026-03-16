@@ -144,7 +144,7 @@ def generate_award_banner(name, award_keys, color, banner=False, size_mode="Defa
 
     scale = SIZE_OPTIONS[size_mode]
 
-    cache_string = f"{name}_{award_keys}_{color}_{banner}_{size_mode}"
+    cache_string = f"{name}_{sorted(award_keys)}_{color}_{banner}_{size_mode}"
     cache_hash = hashlib.md5(cache_string.encode()).hexdigest()
     cache_path = os.path.join(CACHE_FOLDER, f"{cache_hash}.png")
 
@@ -210,13 +210,34 @@ tree = bot.tree
 # ==========================
 
 @tree.command(name="award", description="Generate TankPit award banner")
-async def award(interaction: discord.Interaction, tank_name: str):
+@app_commands.describe(
+    tank_name="Tank or player name",
+    awards="Comma-separated award keys (e.g. gold_cup,single_star,purple_heart)",
+    color="Name color (default: Blue)",
+)
+@app_commands.choices(color=[
+    app_commands.Choice(name=name, value=name) for name in OFFICIAL_COLORS
+])
+async def award(
+    interaction: discord.Interaction,
+    tank_name: str,
+    awards: str = None,
+    color: app_commands.Choice[str] = None,
+):
+    award_keys = []
+    if awards:
+        for key in awards.split(","):
+            key = key.strip()
+            if key in AWARDS:
+                award_keys.append(key)
 
-    sorted_awards = sort_awards([])
+    sorted_awards = sort_awards(award_keys)
+    chosen_color = OFFICIAL_COLORS[color.value if color else "Blue"]
+
     image_path = generate_award_banner(
         tank_name,
         sorted_awards,
-        OFFICIAL_COLORS["Blue"],
+        chosen_color,
         False,
         "Default"
     )
