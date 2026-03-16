@@ -356,6 +356,11 @@ tree.add_command(award, guild=GUILD2)
 
 @bot.event
 async def on_ready():
+    # Clear all global commands once on startup
+    tree.clear_commands(guild=None)
+    await tree.sync()
+    log.info("Global commands cleared.")
+
     for guild_obj in [GUILD, GUILD2]:
         await tree.sync(guild=guild_obj)
     log.info(f"Logged in as {bot.user}")
