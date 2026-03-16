@@ -1,11 +1,22 @@
 import os
 import hashlib
+import logging
 from dotenv import load_dotenv
 
 import discord
 from discord.ext import commands
 from discord import app_commands
 from PIL import Image, ImageDraw, ImageFont
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler("bot.log"),
+    ]
+)
+log = logging.getLogger(__name__)
 
 # ==========================
 # ENV
@@ -204,12 +215,13 @@ def generate_award_banner(name, award_keys, color, banner=False, size_mode="Defa
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 tree = bot.tree
+GUILD = discord.Object(id=GUILD_ID)
 
 # ==========================
 # SLASH COMMAND
 # ==========================
 
-@tree.command(name="award", description="Generate TankPit award banner")
+@tree.command(name="award", description="Generate TankPit award banner", guild=GUILD)
 @app_commands.describe(
     tank_name="Tank or player name",
     awards="Comma-separated award keys (e.g. gold_cup,single_star,purple_heart)",
@@ -224,25 +236,32 @@ async def award(
     awards: str = None,
     color: app_commands.Choice[str] = None,
 ):
-    award_keys = []
-    if awards:
-        for key in awards.split(","):
-            key = key.strip()
-            if key in AWARDS:
-                award_keys.append(key)
+    try:
+        await interaction.response.defer()
+        award_keys = []
+        if awards:
+            for key in awards.split(","):
+                key = key.strip()
+                if key in AWARDS:
+                    award_keys.append(key)
 
-    sorted_awards = sort_awards(award_keys)
-    chosen_color = OFFICIAL_COLORS[color.value if color else "Blue"]
+        sorted_awards = sort_awards(award_keys)
+        chosen_color = OFFICIAL_COLORS[color.value if color else "Blue"]
 
-    image_path = generate_award_banner(
-        tank_name,
-        sorted_awards,
-        chosen_color,
-        False,
-        "Default"
-    )
+        image_path = generate_award_banner(
+            tank_name,
+            sorted_awards,
+            chosen_color,
+            False,
+            "Default"
+        )
 
-    await interaction.response.send_message(file=discord.File(image_path))
+        await interaction.followup.send(file=discord.File(image_path))
+        log.info(f"/award: {tank_name} | awards={sorted_awards} | color={color and color.value}")
+
+    except Exception as e:
+        log.exception(f"/award failed for '{tank_name}': {e}")
+        await interaction.followup.send(f"Error generating banner: `{e}`", ephemeral=True)
 
 # ==========================
 # READY + SYNC
@@ -252,8 +271,16 @@ async def award(
 async def on_ready():
     guild = discord.Object(id=GUILD_ID)
     await tree.sync(guild=guild)
-    print(f"Logged in as {bot.user}")
-    print("Award command synced.")
+    log.info(f"Logged in as {bot.user}")
+    log.info("Award command synced.")
+
+@tree.error
+async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    log.exception(f"Unhandled app command error: {error}")
+    if not interaction.response.is_done():
+        await interaction.response.send_message(f"Unexpected error: `{error}`", ephemeral=True)
+    else:
+        await interaction.followup.send(f"Unexpected error: `{error}`", ephemeral=True)
 
 print("Bot starting...")
 bot.run(TOKEN)
