@@ -4,6 +4,7 @@ import hashlib
 import logging
 from dotenv import load_dotenv
 
+import aiohttp
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -349,6 +350,183 @@ async def award(interaction: discord.Interaction, tank_name: str):
     view.message = await interaction.original_response()
 
 tree.add_command(award, guild=GUILD2)
+
+# ==========================
+# TANK LOOKUP HELPERS
+# ==========================
+
+TANKPIT_FIND_URL = "https://tankpit.com/api/find_tank"
+TANKPIT_PROFILE_URL = "https://tankpit.com/api/tank"
+
+# awards array index → (category label, [tier labels by value 1,2,3])
+AWARD_TIERS = [
+    ("Stars",   ["Single Star", "Double Star", "Triple Star"]),
+    ("Tank",    ["Bronze Tank", "Silver Tank", "Golden Tank"]),
+    ("Medal",   ["Combat Honor", "Battle Honor", "Heroic Honor"]),
+    ("Sword",   ["Shining Sword", "Battered Sword", "Rusty Sword"]),
+    ("Special", ["Defender of Truth", "Defender of Truth", "Defender of Truth"]),
+    ("Cup",     ["Bronze Cup", "Silver Cup", "Gold Cup"]),
+    ("Special", ["Purple Heart", "Purple Heart", "Purple Heart"]),
+    ("Special", ["War Correspondent", "War Correspondent", "War Correspondent"]),
+    ("Special", ["Lightbulb", "Lightbulb", "Lightbulb"]),
+]
+
+_API_TIMEOUT = aiohttp.ClientTimeout(total=10)
+
+
+def decode_awards(awards: list) -> str:
+    """Convert raw awards array (e.g. [3,3,3,2,3,3,0,1,0]) to readable names."""
+    names = []
+    for i, val in enumerate(awards):
+        if val and i < len(AWARD_TIERS):
+            _, tiers = AWARD_TIERS[i]
+            names.append(tiers[min(val, 3) - 1])
+    return ", ".join(names) if names else "None"
+
+
+async def fetch_tank_search(name: str) -> list[dict]:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(TANKPIT_FIND_URL, params={"name": name}, timeout=_API_TIMEOUT) as resp:
+            resp.raise_for_status()
+            data = await resp.json()
+            return data if isinstance(data, list) else [data]
+
+
+async def fetch_tank_profile(tank_id: int) -> dict:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(TANKPIT_PROFILE_URL, params={"tank_id": tank_id}, timeout=_API_TIMEOUT) as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+
+def build_tank_embed(profile: dict) -> discord.Embed:
+    name = profile.get("name", "Unknown")
+    color_name = (profile.get("main_color") or "").lower()
+    embed_color = {"blue": 0x0000E0, "red": 0xE00000, "orange": 0xFF9000, "purple": 0xDF00E0}.get(color_name, 0xFF9000)
+
+    embed = discord.Embed(title=name, color=embed_color)
+
+    # Row 1 — identity
+    if color_name:
+        embed.add_field(name="Color", value=color_name.capitalize(), inline=True)
+    if country := profile.get("country"):
+        embed.add_field(name="Country", value=country, inline=True)
+    if ping := profile.get("ping"):
+        embed.add_field(name="Ping", value=ping, inline=True)
+
+    # Row 2 — gameplay
+    if fav_map := profile.get("favorite_map"):
+        embed.add_field(name="Favorite Map", value=fav_map, inline=True)
+    if bf_name := profile.get("bf_tank_name"):
+        embed.add_field(name="Battlefield Tank", value=bf_name, inline=True)
+
+    # Tournament victories
+    tv = profile.get("tournament_victories") or {}
+    gold_n   = len(tv.get("gold",   []))
+    silver_n = len(tv.get("silver", []))
+    bronze_n = len(tv.get("bronze", []))
+    if gold_n or silver_n or bronze_n:
+        embed.add_field(
+            name="Tournament Victories",
+            value=f"🥇 {gold_n}  🥈 {silver_n}  🥉 {bronze_n}",
+            inline=False,
+        )
+
+    # Awards
+    raw_awards = profile.get("awards") or []
+    if raw_awards:
+        embed.add_field(name="Awards", value=decode_awards(raw_awards), inline=False)
+
+    # Bio
+    if bio := profile.get("profile"):
+        embed.add_field(name="Profile", value=bio, inline=False)
+
+    if tank_id := profile.get("tank_id"):
+        embed.set_footer(text=f"Tank ID: {tank_id}")
+
+    return embed
+
+
+class TankSelectView(discord.ui.View):
+    """Shown when find_tank returns multiple results — lets user pick one."""
+
+    def __init__(self, results: list[dict]):
+        super().__init__(timeout=60)
+        self.results = results
+        options = [
+            discord.SelectOption(
+                label=t.get("name", f"Tank {i+1}")[:100],
+                value=str(i),
+                description=(f"ID: {t['tank_id']}" if t.get("tank_id") else None),
+            )
+            for i, t in enumerate(results[:25])
+        ]
+        select = discord.ui.Select(placeholder="Multiple tanks found — pick one…", options=options)
+        select.callback = self._on_select
+        self.add_item(select)
+
+    async def _on_select(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        idx = int(interaction.data["values"][0])
+        tank_id = self.results[idx].get("tank_id")
+        try:
+            profile = await fetch_tank_profile(tank_id)
+        except Exception as e:
+            log.exception(f"TankSelectView profile fetch failed (id={tank_id}): {e}")
+            await interaction.edit_original_response(content=f"Failed to load profile: `{e}`", embed=None, view=None)
+            return
+        await interaction.edit_original_response(content=None, embed=build_tank_embed(profile), view=None)
+
+
+# ==========================
+# /tank COMMAND
+# ==========================
+
+@tree.command(name="tank", description="Look up a TankPit player profile by name", guild=GUILD)
+@app_commands.describe(tank_name="Tank or player name to search for")
+async def tank_lookup(interaction: discord.Interaction, tank_name: str):
+    await interaction.response.defer(ephemeral=True)
+    try:
+        results = await fetch_tank_search(tank_name.strip())
+    except aiohttp.ClientResponseError as e:
+        log.warning(f"/tank search error for '{tank_name}': {e.status} {e.message}")
+        await interaction.followup.send(f"API error: `{e.status} {e.message}`", ephemeral=True)
+        return
+    except Exception as e:
+        log.exception(f"/tank failed for '{tank_name}': {e}")
+        await interaction.followup.send(f"Failed to reach TankPit API: `{e}`", ephemeral=True)
+        return
+
+    if not results:
+        await interaction.followup.send(f"No tanks found for **{tank_name}**.", ephemeral=True)
+        return
+
+    if len(results) > 1:
+        view = TankSelectView(results)
+        await interaction.followup.send(
+            f"Found **{len(results)}** tanks matching **{tank_name}** — pick one:",
+            view=view,
+            ephemeral=True,
+        )
+        return
+
+    # Single result — fetch full profile
+    tank_id = results[0].get("tank_id")
+    try:
+        profile = await fetch_tank_profile(tank_id)
+    except aiohttp.ClientResponseError as e:
+        log.warning(f"/tank profile error (id={tank_id}): {e.status} {e.message}")
+        await interaction.followup.send(f"API error fetching profile: `{e.status} {e.message}`", ephemeral=True)
+        return
+    except Exception as e:
+        log.exception(f"/tank profile fetch failed (id={tank_id}): {e}")
+        await interaction.followup.send(f"Failed to load profile: `{e}`", ephemeral=True)
+        return
+
+    log.info(f"/tank: {profile.get('name')} (id={tank_id})")
+    await interaction.followup.send(embed=build_tank_embed(profile), ephemeral=True)
+
+tree.add_command(tank_lookup, guild=GUILD2)
 
 # ==========================
 # READY + SYNC
