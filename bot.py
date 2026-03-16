@@ -246,14 +246,15 @@ class AwardSelectionView(discord.ui.View):
         super().__init__(timeout=120)
         self.tank_name = tank_name
 
+        awards_options = [
+            discord.SelectOption(label=info["display"], value=key)
+            for key, info in AWARDS.items()
+        ]
         self.awards_select = discord.ui.Select(
-            placeholder="Select awards (up to 3)...",
+            placeholder="Select awards...",
             min_values=0,
-            max_values=3,
-            options=[
-                discord.SelectOption(label=info["display"], value=key)
-                for key, info in AWARDS.items()
-            ],
+            max_values=len(awards_options),
+            options=awards_options,
             row=0,
         )
         self.awards_select.callback = self._noop
