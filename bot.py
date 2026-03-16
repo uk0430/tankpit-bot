@@ -219,32 +219,44 @@ tree = bot.tree
 GUILD = discord.Object(id=GUILD_ID)
 
 # ==========================
-# MODAL + UI
+# UI
 # ==========================
 
-class AwardModal(discord.ui.Modal, title="Generate Award Banner"):
-    tank_name = discord.ui.TextInput(
+def _award_content(name: str) -> str:
+    return (
+        f"**Configuring banner for:** {name}\n"
+        "Select awards, color, and size, then click **Generate Banner**."
+    )
+
+
+class ChangeNameModal(discord.ui.Modal, title="Change Tank Name"):
+    new_name = discord.ui.TextInput(
         label="Tank or Player Name",
-        placeholder="e.g. Tiger I, Panzer IV...",
+        placeholder="e.g. Grimlock, Stonerock...",
         min_length=1,
         max_length=64,
     )
 
+    def __init__(self, parent_view):
+        super().__init__()
+        self.parent_view = parent_view
+
     async def on_submit(self, interaction: discord.Interaction):
-        name = self.tank_name.value.strip().strip(",")
-        view = AwardSelectionView(name)
-        await interaction.response.send_message(
-            f"**Configuring banner for:** {name}\n"
-            "Select awards, color, and size below, then click **Generate**.",
-            view=view,
-            ephemeral=True,
-        )
+        name = self.new_name.value.strip().strip(",")
+        self.parent_view.tank_name = name
+        await interaction.response.defer()
+        if self.parent_view.message:
+            await self.parent_view.message.edit(
+                content=_award_content(name),
+                view=self.parent_view,
+            )
 
 
 class AwardSelectionView(discord.ui.View):
     def __init__(self, tank_name: str):
-        super().__init__(timeout=120)
+        super().__init__(timeout=300)
         self.tank_name = tank_name
+        self.message = None
 
         awards_options = [
             discord.SelectOption(label=info["display"], value=key)
@@ -317,14 +329,22 @@ class AwardSelectionView(discord.ui.View):
             log.exception(f"/award failed for '{self.tank_name}': {e}")
             await interaction.followup.send(f"Error generating banner: `{e}`", ephemeral=True)
 
+    @discord.ui.button(label="Change Name", style=discord.ButtonStyle.secondary, row=3)
+    async def change_name(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(ChangeNameModal(self))
+
 
 # ==========================
 # SLASH COMMAND
 # ==========================
 
 @tree.command(name="award", description="Generate a TankPit award banner for a tank or player", guild=GUILD)
-async def award(interaction: discord.Interaction):
-    await interaction.response.send_modal(AwardModal())
+@app_commands.describe(tank_name="Tank or player name (e.g. Grimlock)")
+async def award(interaction: discord.Interaction, tank_name: str):
+    name = tank_name.strip().strip(",")
+    view = AwardSelectionView(name)
+    await interaction.response.send_message(_award_content(name), view=view, ephemeral=True)
+    view.message = await interaction.original_response()
 
 # ==========================
 # READY + SYNC
