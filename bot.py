@@ -219,69 +219,111 @@ tree = bot.tree
 GUILD = discord.Object(id=GUILD_ID)
 
 # ==========================
+# MODAL + UI
+# ==========================
+
+class AwardModal(discord.ui.Modal, title="Generate Award Banner"):
+    tank_name = discord.ui.TextInput(
+        label="Tank or Player Name",
+        placeholder="e.g. Tiger I, Panzer IV...",
+        min_length=1,
+        max_length=64,
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        name = self.tank_name.value.strip().strip(",")
+        view = AwardSelectionView(name)
+        await interaction.response.send_message(
+            f"**Configuring banner for:** {name}\n"
+            "Select awards, color, and size below, then click **Generate**.",
+            view=view,
+            ephemeral=True,
+        )
+
+
+class AwardSelectionView(discord.ui.View):
+    def __init__(self, tank_name: str):
+        super().__init__(timeout=120)
+        self.tank_name = tank_name
+
+        self.awards_select = discord.ui.Select(
+            placeholder="Select awards (up to 3)...",
+            min_values=0,
+            max_values=3,
+            options=[
+                discord.SelectOption(label=info["display"], value=key)
+                for key, info in AWARDS.items()
+            ],
+            row=0,
+        )
+        self.awards_select.callback = self._noop
+
+        self.color_select = discord.ui.Select(
+            placeholder="Text color (default: Blue)...",
+            min_values=0,
+            max_values=1,
+            options=[
+                discord.SelectOption(label=name, value=name)
+                for name in OFFICIAL_COLORS
+            ],
+            row=1,
+        )
+        self.color_select.callback = self._noop
+
+        self.size_select = discord.ui.Select(
+            placeholder="Banner size (default: Default)...",
+            min_values=0,
+            max_values=1,
+            options=[
+                discord.SelectOption(label=name, value=name)
+                for name in SIZE_OPTIONS
+            ],
+            row=2,
+        )
+        self.size_select.callback = self._noop
+
+        self.add_item(self.awards_select)
+        self.add_item(self.color_select)
+        self.add_item(self.size_select)
+
+    async def _noop(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+    @discord.ui.button(label="Generate Banner", style=discord.ButtonStyle.primary, row=3)
+    async def generate(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+
+        award_keys = self.awards_select.values or []
+        sorted_awards = sort_awards(award_keys)
+        color_val = self.color_select.values[0] if self.color_select.values else "Blue"
+        size_val = self.size_select.values[0] if self.size_select.values else "Default"
+        chosen_color = OFFICIAL_COLORS[color_val]
+
+        try:
+            loop = asyncio.get_event_loop()
+            image_path = await loop.run_in_executor(
+                None,
+                generate_award_banner,
+                self.tank_name,
+                sorted_awards,
+                chosen_color,
+                False,
+                size_val,
+            )
+            await interaction.followup.send(file=discord.File(image_path))
+            log.info(f"/award: {self.tank_name} | awards={sorted_awards} | color={color_val} | size={size_val}")
+        except Exception as e:
+            log.exception(f"/award failed for '{self.tank_name}': {e}")
+            await interaction.followup.send(f"Error generating banner: `{e}`", ephemeral=True)
+
+
+# ==========================
 # SLASH COMMAND
 # ==========================
 
-_AWARD_CHOICES = [
-    app_commands.Choice(name=info["display"], value=key)
-    for key, info in AWARDS.items()
-]
-
-_COLOR_CHOICES = [
-    app_commands.Choice(name=name, value=name) for name in OFFICIAL_COLORS
-]
-
-_SIZE_CHOICES = [
-    app_commands.Choice(name=name, value=name) for name in SIZE_OPTIONS
-]
-
 @tree.command(name="award", description="Generate a TankPit award banner for a tank or player", guild=GUILD)
-@app_commands.describe(
-    tank_name="Tank or player name to display on the banner",
-    award_1="First award to display",
-    award_2="Second award (optional)",
-    award_3="Third award (optional)",
-    color="Name text color (default: Blue)",
-    size="Banner size (default: Default)",
-)
-@app_commands.choices(award_1=_AWARD_CHOICES, award_2=_AWARD_CHOICES, award_3=_AWARD_CHOICES)
-@app_commands.choices(color=_COLOR_CHOICES)
-@app_commands.choices(size=_SIZE_CHOICES)
-async def award(
-    interaction: discord.Interaction,
-    tank_name: str,
-    award_1: app_commands.Choice[str] = None,
-    award_2: app_commands.Choice[str] = None,
-    award_3: app_commands.Choice[str] = None,
-    color: app_commands.Choice[str] = None,
-    size: app_commands.Choice[str] = None,
-):
-    try:
-        await interaction.response.defer()
-        tank_name = tank_name.strip().strip(",")
-
-        raw_keys = [c.value for c in [award_1, award_2, award_3] if c is not None]
-        sorted_awards = sort_awards(raw_keys)
-        chosen_color = OFFICIAL_COLORS[color.value if color else "Blue"]
-        chosen_size = size.value if size else "Default"
-
-        loop = asyncio.get_event_loop()
-        image_path = await loop.run_in_executor(
-            None,
-            generate_award_banner,
-            tank_name,
-            sorted_awards,
-            chosen_color,
-            False,
-            chosen_size,
-        )
-
-        await interaction.followup.send(file=discord.File(image_path))
-        log.info(f"/award: {tank_name} | awards={sorted_awards} | color={color and color.value} | size={chosen_size}")
-
-    except Exception as e:
-        log.exception(f"/award failed for '{tank_name}': {e}")
-        await interaction.followup.send(f"Error generating banner: `{e}`", ephemeral=True)
+async def award(interaction: discord.Interaction):
+    await interaction.response.send_modal(AwardModal())
 
 # ==========================
 # READY + SYNC
