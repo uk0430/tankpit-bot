@@ -1,79 +1,313 @@
-[2026-02-28 17:56:16] [INFO    ] discord.client: logging in using static token
-[2026-02-28 17:56:17] [INFO    ] discord.gateway: Shard ID None has connected to Gateway (Session ID: 52475a577698f02440c2b40a51c5bde9).
-[2026-02-28 17:56:49] [INFO    ] discord.client: logging in using static token
-[2026-02-28 17:56:50] [INFO    ] discord.gateway: Shard ID None has connected to Gateway (Session ID: 6c1c39b6788b6aa018c6a5e2c83f097f).
-[2026-02-28 18:02:36] [INFO    ] discord.client: logging in using static token
-[2026-02-28 18:02:36] [INFO    ] discord.gateway: Shard ID None has connected to Gateway (Session ID: 917b80ec530c1111f5c7fbef56d6eec9).
-[2026-02-28 20:25:10] [INFO    ] discord.client: logging in using static token
-[2026-02-28 20:25:10] [INFO    ] discord.gateway: Shard ID None has connected to Gateway (Session ID: 3f72f11b7799b0147f2e98b1bc92bf53).
-[2026-02-28 20:27:28] [INFO    ] discord.gateway: Shard ID None session has been invalidated.
-Logged in as TankPitBot#0095
+2026-03-15 21:08:53,972 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-15 21:08:53,975 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-15 21:08:53,975 [INFO] logging in using static token
+2026-03-15 21:08:54,557 [INFO] Shard ID None has connected to Gateway (Session ID: 009e3dcc7e8d2e8a24ed7ea6f801a28b).
+2026-03-15 21:08:56,648 [INFO] Logged in as TankPitBot#0095
+2026-03-15 21:08:56,649 [INFO] Award command synced.
+2026-03-15 21:23:35,584 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-15 21:23:35,586 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-15 21:23:35,587 [INFO] logging in using static token
+2026-03-15 21:23:36,645 [INFO] Shard ID None has connected to Gateway (Session ID: 0a74b1c22e072bb5026073b92edcff18).
+2026-03-15 21:23:38,862 [INFO] Logged in as TankPitBot#0095
+2026-03-15 21:23:38,862 [INFO] Award command synced.
+2026-03-15 21:23:53,339 [INFO] /award: Grimlock | awards=[] | color=None
+2026-03-15 21:24:37,864 [INFO] /award: Grimlock | awards=[] | color=None
+2026-03-15 21:25:13,087 [INFO] /award: Grimlock, | awards=['single_star'] | color=Purple
+2026-03-15 21:27:41,195 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-15 21:27:41,198 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-15 21:27:41,198 [INFO] logging in using static token
+2026-03-15 21:27:39,504 [INFO] Shard ID None has connected to Gateway (Session ID: 6231fcfb719b4573c97ffefe4e3d0a51).
+2026-03-15 21:27:41,624 [INFO] Logged in as TankPitBot#0095
+2026-03-15 21:27:41,624 [INFO] Award command synced.
+2026-03-15 21:28:00,253 [ERROR] /award failed for 'Grimlock': 404 Not Found (error code: 10062): Unknown interaction
 Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 313, in <module>
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/client.py", line 929, in run
-    asyncio.run(runner())
-  File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
-    return runner.run(main)
-           ^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
-    return self._loop.run_until_complete(task)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
-    return future.result()
-           ^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/client.py", line 918, in runner
-    await self.start(token, reconnect=reconnect)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/client.py", line 847, in start
-    await self.connect(reconnect=reconnect)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/client.py", line 727, in connect
-    await self.ws.poll_event()
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/gateway.py", line 658, in poll_event
-    raise ConnectionClosed(self.socket, shard_id=self.shard_id, code=code) from None
-discord.errors.ConnectionClosed: Shard ID None WebSocket closed with 4004
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 241, in award
+    await interaction.response.defer()
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 858, in defer
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-15 21:28:11,182 [INFO] /award: Grimlock | awards=[] | color=None
+2026-03-15 21:38:16,205 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-15 21:38:16,207 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-15 21:38:16,207 [INFO] logging in using static token
+2026-03-15 21:38:16,731 [INFO] Shard ID None has connected to Gateway (Session ID: 79e68045321316b037594772b244fbaa).
+2026-03-15 21:38:18,899 [INFO] Logged in as TankPitBot#0095
+2026-03-15 21:38:18,899 [INFO] Award command synced.
+2026-03-15 21:38:53,782 [ERROR] /award failed for 'Grimlock': 404 Not Found (error code: 10062): Unknown interaction
 Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 16, in <module>
-    raise ValueError("No DISCORD_TOKEN found in environment variables.")
-ValueError: No DISCORD_TOKEN found in environment variables.
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 260, in award
+    await interaction.response.defer()
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 858, in defer
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-15 21:44:47,212 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-15 21:44:47,213 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-15 21:44:47,214 [INFO] logging in using static token
+2026-03-15 21:44:47,985 [INFO] Shard ID None has connected to Gateway (Session ID: c4ec5e7106eceb8279efe755d5fca1dc).
+2026-03-15 21:44:50,131 [INFO] Logged in as TankPitBot#0095
+2026-03-15 21:44:50,131 [INFO] Award command synced.
+2026-03-15 21:45:28,794 [INFO] /award: Grimlock | awards=['triple_star', 'golden_tank', 'battle_honor'] | color=Purple | size=Medium
+2026-03-15 21:45:56,546 [INFO] /award: Grimlock | awards=['triple_star', 'heroic_honor', 'lightbulb'] | color=Purple | size=Large
+2026-03-15 21:49:34,490 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-15 21:49:34,492 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-15 21:49:34,492 [INFO] logging in using static token
+2026-03-15 21:49:35,250 [INFO] Shard ID None has connected to Gateway (Session ID: 033d699c4c314a30d41439197b169ee4).
+2026-03-15 21:49:37,360 [INFO] Logged in as TankPitBot#0095
+2026-03-15 21:49:37,360 [INFO] Award command synced.
+2026-03-15 21:50:08,998 [INFO] /award: Grimlock | awards=['triple_star', 'battle_honor', 'defender_truth', 'purple_heart', 'lightbulb'] | color=Purple | size=Default
+2026-03-15 21:50:15,430 [INFO] /award: Grimlock | awards=['triple_star', 'battle_honor', 'defender_truth', 'purple_heart', 'lightbulb'] | color=Purple | size=Large
+2026-03-15 21:59:53,621 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-15 21:59:53,623 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-15 21:59:53,623 [INFO] logging in using static token
+2026-03-15 21:59:54,202 [INFO] Shard ID None has connected to Gateway (Session ID: 9f7e17babb816190c86ad3097dba932e).
+2026-03-15 21:59:56,288 [INFO] Logged in as TankPitBot#0095
+2026-03-15 21:59:56,288 [INFO] Award command synced.
+2026-03-15 22:00:20,779 [INFO] /award: Grimlock | awards=['triple_star'] | color=Red | size=Large
+2026-03-15 22:00:38,924 [INFO] /award: Stoner | awards=['triple_star', 'rusty_sword', 'war_correspondent', 'lightbulb'] | color=Red | size=Large
+2026-03-15 22:27:23,257 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-15 22:27:23,259 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-15 22:27:23,259 [INFO] logging in using static token
+2026-03-15 22:27:23,783 [INFO] Shard ID None has connected to Gateway (Session ID: fee29186bb07d6ec33c3f90f16f30e3e).
+2026-03-15 22:27:25,940 [INFO] Synced 1 command(s) to guild 615551999701811221
+2026-03-15 22:27:26,070 [INFO] Synced 1 command(s) to guild 311890399767822359
+2026-03-15 22:27:26,070 [INFO] Logged in as TankPitBot#0095
+2026-03-15 22:27:44,784 [ERROR] Unhandled app command error: Command 'award' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
 Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 16, in <module>
-    raise ValueError("No DISCORD_TOKEN found in environment variables.")
-ValueError: No DISCORD_TOKEN found in environment variables.
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 348, in award
+    await interaction.response.send_message(_award_content(name), view=view, ephemeral=True)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
 Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 16, in <module>
-    raise ValueError("No DISCORD_TOKEN found in environment variables.")
-ValueError: No DISCORD_TOKEN found in environment variables.
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'award' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-15 22:27:44,834 [ERROR] Task exception was never retrieved
+future: <Task finished name='CommandTree-invoker' coro=<CommandTree._from_interaction.<locals>.wrapper() done, defined at /home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py:1136> exception=NotFound('404 Not Found (error code: 10062): Unknown interaction')>
 Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 16, in <module>
-    raise ValueError("No DISCORD_TOKEN found in environment variables.")
-ValueError: No DISCORD_TOKEN found in environment variables.
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 348, in award
+    await interaction.response.send_message(_award_content(name), view=view, ephemeral=True)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
 Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 16, in <module>
-    raise ValueError("No DISCORD_TOKEN found in environment variables.")
-ValueError: No DISCORD_TOKEN found in environment variables.
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'award' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+During handling of the above exception, another exception occurred:
+
 Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 16, in <module>
-    raise ValueError("No DISCORD_TOKEN found in environment variables.")
-ValueError: No DISCORD_TOKEN found in environment variables.
-[2026-02-28 20:27:47] [INFO    ] discord.client: logging in using static token
-[2026-02-28 20:27:47] [INFO    ] discord.gateway: Shard ID None has connected to Gateway (Session ID: ced0a702ca8fe76e816bd558cc5f337b).
-[2026-02-28 20:28:56] [ERROR   ] discord.ext.commands.bot: Ignoring exception in command None
-discord.ext.commands.errors.CommandNotFound: Command "Award" is not found
-[2026-02-28 20:31:37] [INFO    ] discord.client: logging in using static token
-[2026-02-28 20:31:38] [INFO    ] discord.gateway: Shard ID None has connected to Gateway (Session ID: 1be5e60dc036927eb1f63ebb339a1d68).
-[2026-02-28 20:54:59] [INFO    ] discord.client: logging in using static token
-[2026-02-28 20:55:00] [INFO    ] discord.gateway: Shard ID None has connected to Gateway (Session ID: 1580084e71f1fa9694ed88a81de6ab2d).
-[2026-02-28 21:05:45] [INFO    ] discord.client: logging in using static token
-[2026-02-28 21:05:46] [INFO    ] discord.gateway: Shard ID None has connected to Gateway (Session ID: 74fe70f07b7383f5b78d8c3d7ccac853).
-[2026-02-28 21:26:02] [INFO    ] discord.client: logging in using static token
-[2026-02-28 21:26:03] [INFO    ] discord.gateway: Shard ID None has connected to Gateway (Session ID: febac6f3c3dc479cfe280a1dec0daff9).
-[2026-02-28 21:28:53] [INFO    ] discord.client: logging in using static token
-[2026-02-28 21:28:54] [INFO    ] discord.gateway: Shard ID None has connected to Gateway (Session ID: a443b709e578efd7bb0831849fffee23).
-[2026-02-28 21:30:29] [INFO    ] discord.client: logging in using static token
-[2026-02-28 21:30:29] [INFO    ] discord.gateway: Shard ID None has connected to Gateway (Session ID: 8d12c1bc097c36134a8cf90de297be9c).
-[2026-02-28 21:39:29] [INFO    ] discord.client: logging in using static token
-[2026-02-28 21:39:29] [INFO    ] discord.gateway: Shard ID None has connected to Gateway (Session ID: aaaeeee4c7b706c358e424769cbd5dfa).
-[2026-02-28 22:16:22] [INFO    ] discord.gateway: Shard ID None has successfully RESUMED session aaaeeee4c7b706c358e424769cbd5dfa.
-[2026-02-28 22:21:24] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
+    await self._call(interaction)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1301, in _call
+    await self.on_error(interaction, e)
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 368, in on_app_command_error
+    await interaction.response.send_message(f"Unexpected error: `{error}`", ephemeral=True)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-15 22:30:38,212 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-15 22:30:38,214 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-15 22:30:38,214 [INFO] logging in using static token
+2026-03-15 22:30:38,775 [INFO] Shard ID None has connected to Gateway (Session ID: 01d16a0e60129ae0050b0ea1e2e2c3e0).
+2026-03-15 22:30:58,552 [INFO] /award: Grimlock | awards=['single_star'] | color=Blue | size=Medium
+2026-03-15 22:31:15,800 [INFO] Synced 1 command(s) to guild 615551999701811221
+2026-03-15 22:31:15,874 [INFO] Synced 1 command(s) to guild 311890399767822359
+2026-03-15 22:31:15,874 [INFO] Logged in as TankPitBot#0095
+2026-03-15 22:31:32,203 [INFO] /award: Grimlock | awards=['triple_star', 'heroic_honor', 'rusty_sword', 'defender_truth', 'gold_cup', 'war_correspondent'] | color=Blue | size=Medium
+2026-03-15 22:31:38,398 [INFO] /award: Grimlock | awards=['triple_star', 'heroic_honor', 'rusty_sword', 'defender_truth', 'gold_cup', 'war_correspondent'] | color=Blue | size=Large
+2026-03-15 22:31:44,599 [INFO] /award: Grimlock | awards=['triple_star', 'heroic_honor', 'rusty_sword', 'defender_truth', 'gold_cup', 'war_correspondent'] | color=Orange | size=Large
+2026-03-15 22:57:38,273 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-15 22:57:38,275 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-15 22:57:38,275 [INFO] logging in using static token
+2026-03-15 22:57:38,869 [INFO] Shard ID None has connected to Gateway (Session ID: 6fb89af772a21a1043847e89561fa2bb).
+2026-03-15 22:57:39,310 [INFO] Synced 1 command(s) to guild 615551999701811221
+2026-03-15 22:57:39,419 [INFO] Synced 1 command(s) to guild 311890399767822359
+2026-03-15 22:57:39,419 [INFO] Logged in as TankPitBot#0095
+2026-03-15 22:58:36,640 [INFO] /award: Grimlock | awards=['triple_star', 'combat_honor', 'rusty_sword', 'defender_truth', 'gold_cup', 'lightbulb'] | color=Orange | size=Medium
+2026-03-15 23:00:41,721 [ERROR] Unhandled app command error: Command 'award' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 348, in award
+    await interaction.response.send_message(_award_content(name), view=view, ephemeral=True)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'award' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-15 23:00:41,781 [ERROR] Task exception was never retrieved
+future: <Task finished name='CommandTree-invoker' coro=<CommandTree._from_interaction.<locals>.wrapper() done, defined at /home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py:1136> exception=NotFound('404 Not Found (error code: 10062): Unknown interaction')>
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 348, in award
+    await interaction.response.send_message(_award_content(name), view=view, ephemeral=True)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'award' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
+    await self._call(interaction)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1301, in _call
+    await self.on_error(interaction, e)
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 368, in on_app_command_error
+    await interaction.response.send_message(f"Unexpected error: `{error}`", ephemeral=True)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-15 23:01:05,807 [INFO] /award: Grimlock | awards=['triple_star'] | color=Purple | size=Large
+2026-03-15 23:08:49,261 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-15 23:08:49,263 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-15 23:08:49,263 [INFO] logging in using static token
+2026-03-15 23:08:49,867 [INFO] Shard ID None has connected to Gateway (Session ID: 31ef5289463000284049cab2215e4f94).
+2026-03-15 23:08:52,011 [INFO] Synced 2 command(s) to guild 615551999701811221
+2026-03-15 23:08:52,125 [INFO] Synced 2 command(s) to guild 311890399767822359
+2026-03-15 23:08:52,125 [INFO] Logged in as TankPitBot#0095
+2026-03-15 23:09:04,587 [ERROR] Unhandled app command error: Command 'award' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 348, in award
+    view = AwardSelectionView(name)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'award' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-15 23:09:04,636 [ERROR] Task exception was never retrieved
+future: <Task finished name='CommandTree-invoker' coro=<CommandTree._from_interaction.<locals>.wrapper() done, defined at /home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py:1136> exception=NotFound('404 Not Found (error code: 10062): Unknown interaction')>
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 348, in award
+    view = AwardSelectionView(name)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'award' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
+    await self._call(interaction)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1301, in _call
+    await self.on_error(interaction, e)
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 368, in on_app_command_error
+    ("Cup",     ["Bronze Cup", "Silver Cup", "Gold Cup"]),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-15 23:09:13,826 [INFO] /award: Grimlock | awards=['triple_star'] | color=Orange | size=Large
+2026-03-15 23:09:30,607 [ERROR] Unhandled app command error: Application command 'tank' not found
 Traceback (most recent call last):
   File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
     await self._call(interaction)
@@ -82,206 +316,78 @@ Traceback (most recent call last):
                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
     raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:21:29] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
+discord.app_commands.errors.CommandNotFound: Application command 'tank' not found
+2026-03-15 23:09:30,705 [ERROR] Unhandled app command error: Command 'tank' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 488, in tank_lookup
+    await interaction.response.defer(ephemeral=True)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 858, in defer
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'tank' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-15 23:09:30,767 [ERROR] Task exception was never retrieved
+future: <Task finished name='CommandTree-invoker' coro=<CommandTree._from_interaction.<locals>.wrapper() done, defined at /home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py:1136> exception=NotFound('404 Not Found (error code: 10062): Unknown interaction')>
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 488, in tank_lookup
+    await interaction.response.defer(ephemeral=True)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 858, in defer
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1297, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'tank' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+During handling of the above exception, another exception occurred:
+
 Traceback (most recent call last):
   File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
     await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:21:32] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:21:33] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:21:37] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:21:39] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:21:41] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:21:42] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:21:43] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:21:45] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:21:48] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:21:49] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:21:49] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:35:09] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:35:12] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:35:12] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:35:13] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:35:16] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:35:17] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:42:30] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:47:36] [ERROR   ] discord.app_commands.tree: Ignoring exception in command tree
-Traceback (most recent call last):
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
-    await self._call(interaction)
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1270, in _call
-    command, options = self._get_app_command_options(data)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
-    raise CommandNotFound(name, parents)
-discord.app_commands.errors.CommandNotFound: Application command 'award' not found
-[2026-02-28 22:52:30] [ERROR   ] discord.ext.commands.bot: Ignoring exception in command None
-discord.ext.commands.errors.CommandNotFound: Command "award" is not found
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/app_commands/tree.py", line 1301, in _call
+    await self.on_error(interaction, e)
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 546, in on_app_command_error
+    await interaction.response.send_message(f"Unexpected error: `{error}`", ephemeral=True)
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/interactions.py", line 1051, in send_message
+    response = await adapter.create_interaction_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-15 23:11:54,937 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-15 23:11:54,940 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-15 23:11:54,940 [INFO] logging in using static token
+2026-03-15 23:11:55,474 [INFO] Shard ID None has connected to Gateway (Session ID: a2d9047f0232625cf684d02eadba0493).
+2026-03-15 23:11:57,884 [INFO] Synced 2 command(s) to guild 615551999701811221
+2026-03-15 23:11:58,036 [INFO] Synced 2 command(s) to guild 311890399767822359
+2026-03-15 23:11:58,036 [INFO] Logged in as TankPitBot#0095

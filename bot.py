@@ -1,7 +1,10 @@
 import asyncio
+import json
 import os
 import hashlib
 import logging
+import numpy as np
+import requests
 from dotenv import load_dotenv
 
 import aiohttp
@@ -43,6 +46,22 @@ ICON_HEIGHT = 16
 CACHE_FOLDER = "cache"
 
 os.makedirs(CACHE_FOLDER, exist_ok=True)
+
+# ==========================
+# RAG DATA
+# ==========================
+
+with open("/home/ukhan/tankpit-ai/bible_chunks.json") as _f:
+    _raw_chunks = json.load(_f)
+
+BIBLE_TEXTS = [c["text"] for c in _raw_chunks]
+BIBLE_EMBEDDINGS = np.array([c["embedding"] for c in _raw_chunks], dtype=np.float32)
+# Pre-normalise for fast cosine similarity via dot product
+_norms = np.linalg.norm(BIBLE_EMBEDDINGS, axis=1, keepdims=True)
+BIBLE_EMBEDDINGS_NORM = BIBLE_EMBEDDINGS / np.where(_norms == 0, 1, _norms)
+
+EMBED_URL = "http://127.0.0.1:8081/v1/embeddings"
+LLM_URL   = "http://127.0.0.1:8080/v1/chat/completions"
 
 # ==========================
 # COLORS
@@ -526,6 +545,72 @@ async def tank_lookup(interaction: discord.Interaction, tank_name: str):
     await interaction.edit_original_response(content=None, embed=build_tank_embed(profile))
 
 tree.add_command(tank_lookup, guild=GUILD2)
+
+# ==========================
+# /ask COMMAND
+# ==========================
+
+def _rag_query(question: str) -> str:
+    """Blocking: embed question, find top-3 chunks, query Mistral. Returns answer string."""
+    # 1. Embed the question
+    embed_resp = requests.post(
+        EMBED_URL,
+        json={"input": question, "model": "text-embedding-nomic-embed-text-v1.5"},
+        timeout=30,
+    )
+    embed_resp.raise_for_status()
+    q_vec = np.array(embed_resp.json()["data"][0]["embedding"], dtype=np.float32)
+    q_norm = q_vec / (np.linalg.norm(q_vec) or 1.0)
+
+    # 2. Cosine similarity against all chunks
+    scores = BIBLE_EMBEDDINGS_NORM @ q_norm
+    top_idx = np.argsort(scores)[-3:][::-1]
+    context = "\n\n---\n\n".join(BIBLE_TEXTS[i] for i in top_idx)
+
+    # 3. Query Mistral
+    system_prompt = (
+        "You are a helpful assistant for the TankPit gaming community. "
+        "Answer the user's question using only the context provided below. "
+        "If the answer is not in the context, say so.\n\n"
+        f"Context:\n{context}"
+    )
+    llm_resp = requests.post(
+        LLM_URL,
+        json={
+            "model": "mistral",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": question},
+            ],
+            "temperature": 0.2,
+        },
+        timeout=60,
+    )
+    llm_resp.raise_for_status()
+    return llm_resp.json()["choices"][0]["message"]["content"]
+
+
+@tree.command(name="ask", description="Ask a question about TankPit (AI-powered)", guild=GUILD)
+@app_commands.describe(
+    question="Your question about TankPit",
+    private="Only you can see the answer (default: False)",
+)
+async def ask(interaction: discord.Interaction, question: str, private: bool = False):
+    await interaction.response.defer(ephemeral=private)
+    try:
+        answer = await asyncio.to_thread(_rag_query, question)
+    except Exception as e:
+        log.exception(f"/ask failed for '{question}': {e}")
+        await interaction.followup.send(f"Error querying AI: `{e}`", ephemeral=True)
+        return
+
+    if len(answer) > 1900:
+        answer = answer[:1897] + "…"
+
+    log.info(f"/ask: q={question!r} private={private}")
+    await interaction.followup.send(answer, ephemeral=private)
+
+tree.add_command(ask, guild=GUILD2)
 
 # ==========================
 # READY + SYNC

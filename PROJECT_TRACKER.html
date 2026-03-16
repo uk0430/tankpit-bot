@@ -1,0 +1,336 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);font-size:14px;color:var(--color-text-primary)}
+.shell{display:grid;grid-template-columns:200px 1fr;min-height:600px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.sidebar{background:var(--color-background-secondary);border-right:0.5px solid var(--color-border-tertiary);padding:12px 0}
+.sidebar-title{font-size:11px;font-weight:500;color:var(--color-text-tertiary);padding:0 14px 8px;letter-spacing:0.05em;text-transform:uppercase}
+.proj-item{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;border-left:3px solid transparent;transition:background 0.1s}
+.proj-item:hover{background:var(--color-background-primary)}
+.proj-item.active{background:var(--color-background-primary);border-left-color:#378ADD}
+.proj-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.proj-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proj-status{font-size:11px;color:var(--color-text-tertiary)}
+.add-proj-btn{margin:8px 14px 0;width:calc(100% - 28px);padding:6px;font-size:12px;background:transparent;border:0.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;color:var(--color-text-secondary)}
+.add-proj-btn:hover{background:var(--color-background-primary)}
+.main{background:var(--color-background-primary);display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.proj-title{font-size:16px;font-weight:500}
+.status-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:12px 16px}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px}
+.metric-label{font-size:11px;color:var(--color-text-tertiary);margin-bottom:4px}
+.metric-val{font-size:20px;font-weight:500}
+.tabs{display:flex;gap:0;padding:0 16px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.tab{padding:8px 14px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--color-text-secondary)}
+.tab.active{color:var(--color-text-primary);border-bottom-color:#378ADD}
+.panel{flex:1;padding:14px 16px;overflow-y:auto}
+.items-list{display:flex;flex-direction:column;gap:6px}
+.item-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer}
+.item-row:hover{background:var(--color-background-secondary)}
+.item-left{flex:1;min-width:0}
+.item-title{font-size:13px;font-weight:500;margin-bottom:2px}
+.item-meta{font-size:11px;color:var(--color-text-tertiary)}
+.item-badge{font-size:11px;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.add-btn{margin-top:10px;padding:7px 14px;font-size:13px;background:transparent;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;color:var(--color-text-primary)}
+.add-btn:hover{background:var(--color-background-secondary)}
+.log-entry{padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:13px}
+.log-entry:last-child{border-bottom:none}
+.log-time{font-size:11px;color:var(--color-text-tertiary);margin-bottom:2px}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal{background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-lg);padding:20px;width:340px;max-width:90vw}
+.modal h3{font-size:15px;font-weight:500;margin-bottom:14px}
+.form-row{margin-bottom:10px}
+.form-row label{font-size:12px;color:var(--color-text-secondary);display:block;margin-bottom:4px}
+.form-row input,.form-row select,.form-row textarea{width:100%;padding:7px 10px;font-size:13px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary)}
+.form-row textarea{min-height:70px;resize:vertical}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.modal-btns button{padding:7px 16px;font-size:13px;border-radius:var(--border-radius-md);cursor:pointer;border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary)}
+.modal-btns .primary{background:#378ADD;color:#fff;border-color:#378ADD}
+.empty{padding:32px;text-align:center;color:var(--color-text-tertiary);font-size:13px}
+</style>
+
+<div class="shell" id="app"></div>
+
+<script>
+const STATUS_COLORS={
+  active:{bg:'#EAF3DE',color:'#3B6D11'},
+  paused:{bg:'#FAEEDA',color:'#854F0B'},
+  idea:{bg:'#EEEDFE',color:'#3C3489'},
+  done:{bg:'#E1F5EE',color:'#0F6E56'}
+};
+const PRIORITY_COLORS={
+  high:{bg:'#FCEBEB',color:'#A32D2D'},
+  medium:{bg:'#FAEEDA',color:'#854F0B'},
+  low:{bg:'#EAF3DE',color:'#3B6D11'}
+};
+const ITEM_STATUS_COLORS={
+  open:{bg:'#E6F1FB',color:'#185FA5'},
+  'in-progress':{bg:'#FAEEDA',color:'#854F0B'},
+  done:{bg:'#EAF3DE',color:'#3B6D11'},
+  blocked:{bg:'#FCEBEB',color:'#A32D2D'}
+};
+
+const defaultData={
+  projects:[
+    {
+      id:'p1',name:'tankpit-bot',status:'active',desc:'Discord bot — awards, /tank lookup, /ask RAG',
+      tasks:[
+        {id:'t1',title:'Wire /ask into bot.py',status:'done',priority:'high',notes:'RAG pipeline working, bible_chunks.json loaded'},
+        {id:'t2',title:'Fix interaction timeout reliability',status:'open',priority:'high',notes:'asyncio.to_thread helps but still flaky under load'},
+        {id:'t3',title:'Add /help or /info command',status:'open',priority:'medium',notes:'Users have no way to discover available awards'},
+        {id:'t4',title:'Split bot.py into modules',status:'open',priority:'low',notes:'banner.py, tankpit_api.py, ask.py once it grows more'},
+      ],
+      alerts:[
+        {id:'a1',title:'Unknown Interaction (404) errors',severity:'warning',notes:'Occasional under load — Discord 3s window tight'},
+      ],
+      log:[
+        {id:'l1',ts:'2025-02-25',text:'bible_chunks.json built — 37 chunks, embeddings baked in'},
+        {id:'l2',ts:'2025-03-15',text:'/ask command added with RAG pipeline (embed→search→Mistral)'},
+        {id:'l3',ts:'2025-03-16',text:'/tank and /award both working in production'},
+      ]
+    },
+    {
+      id:'p2',name:'tankpit-ai',status:'active',desc:'Local RAG brain — TankPit bible, leaderboards, Mistral 7B',
+      tasks:[
+        {id:'t5',title:'Wire vector_search.py into brain.py router',status:'open',priority:'high',notes:'Currently brain.py sends everything to LLM directly — RAG not used'},
+        {id:'t6',title:'Start embedding server on port 8081',status:'open',priority:'high',notes:'nomic-embed-text needed for /ask'},
+        {id:'t7',title:'Refresh bible with latest TankPit content',status:'open',priority:'medium',notes:'bible_chunks.json last updated Feb 25'},
+      ],
+      alerts:[],
+      log:[
+        {id:'l4',ts:'2025-02-25',text:'bible_chunks.json created, embeddings generated'},
+        {id:'l5',ts:'2025-03-16',text:'vector_search.py confirmed working standalone'},
+      ]
+    }
+  ],
+  ideas:[
+    {id:'i1',title:'/leaderboard command',notes:'Fetch live leaderboard from tankpit.com/api/leaderboards, format as embed'},
+    {id:'i2',title:'Auto-post new award notifications',notes:'Poll seen_posts.json pattern — post to channel when new awards appear'},
+    {id:'i3',title:'Refresh bible on a schedule',notes:'Cron job to re-crawl tankpit.com and rebuild bible_chunks.json'},
+    {id:'i4',title:'Persistent conversation memory for /ask',notes:'Keep last N messages per user so follow-up questions work'},
+  ]
+};
+
+let data=JSON.parse(localStorage.getItem('tp_tracker')||'null')||defaultData;
+let activeProject=data.projects[0]?.id||null;
+let activeTab='tasks';
+let modal=null;
+
+function save(){localStorage.setItem('tp_tracker',JSON.stringify(data))}
+function uid(){return 'x'+Math.random().toString(36).slice(2,8)}
+function today(){return new Date().toISOString().slice(0,10)}
+
+function badge(text,colors,style=''){
+  return `<span class="item-badge" style="background:${colors.bg};color:${colors.color};${style}">${text}</span>`
+}
+
+function renderSidebar(){
+  const projs=data.projects.map(p=>{
+    const sc=STATUS_COLORS[p.status]||STATUS_COLORS.idea;
+    return `<div class="proj-item${p.id===activeProject?' active':''}" onclick="setProject('${p.id}')">
+      <div class="proj-dot" style="background:${sc.color}"></div>
+      <div style="min-width:0"><div class="proj-name">${p.name}</div><div class="proj-status">${p.status}</div></div>
+    </div>`;
+  }).join('');
+  return `<div class="sidebar-title">Projects</div>
+  ${projs}
+  <button class="add-proj-btn" onclick="openModal('project')">+ new project</button>
+  <div class="sidebar-title" style="margin-top:16px">Backlog</div>
+  <div class="proj-item${activeProject==='ideas'?' active':''}" onclick="setProject('ideas')">
+    <div class="proj-dot" style="background:#7F77DD"></div>
+    <div style="min-width:0"><div class="proj-name">ideas</div><div class="proj-status">${data.ideas.length} items</div></div>
+  </div>`;
+}
+
+function renderMetrics(p){
+  const total=p.tasks.length;
+  const done=p.tasks.filter(t=>t.status==='done').length;
+  const open=p.tasks.filter(t=>t.status==='open').length;
+  const blocked=p.tasks.filter(t=>t.status==='blocked').length;
+  return `<div class="metric"><div class="metric-label">total tasks</div><div class="metric-val">${total}</div></div>
+  <div class="metric"><div class="metric-label">done</div><div class="metric-val" style="color:#3B6D11">${done}</div></div>
+  <div class="metric"><div class="metric-label">open</div><div class="metric-val" style="color:#185FA5">${open}</div></div>
+  <div class="metric"><div class="metric-label">alerts</div><div class="metric-val" style="color:#A32D2D">${p.alerts.length}</div></div>`;
+}
+
+function renderTasks(p){
+  if(!p.tasks.length) return '<div class="empty">No tasks yet</div>';
+  return p.tasks.map(t=>{
+    const sc=ITEM_STATUS_COLORS[t.status]||ITEM_STATUS_COLORS.open;
+    const pc=PRIORITY_COLORS[t.priority]||PRIORITY_COLORS.medium;
+    return `<div class="item-row" onclick="openModal('task','${p.id}','${t.id}')">
+      <div class="item-left">
+        <div class="item-title">${t.title}</div>
+        ${t.notes?`<div class="item-meta">${t.notes}</div>`:''}
+      </div>
+      ${badge(t.priority,pc,'margin-right:4px')}
+      ${badge(t.status,sc)}
+    </div>`;
+  }).join('');
+}
+
+function renderAlerts(p){
+  if(!p.alerts.length) return '<div class="empty">No active alerts</div>';
+  const sevColors={warning:{bg:'#FAEEDA',color:'#854F0B'},critical:{bg:'#FCEBEB',color:'#A32D2D'},info:{bg:'#E6F1FB',color:'#185FA5'}};
+  return p.alerts.map(a=>{
+    const sc=sevColors[a.severity]||sevColors.info;
+    return `<div class="item-row" onclick="openModal('alert','${p.id}','${a.id}')">
+      <div class="item-left">
+        <div class="item-title">${a.title}</div>
+        ${a.notes?`<div class="item-meta">${a.notes}</div>`:''}
+      </div>
+      ${badge(a.severity,sc)}
+    </div>`;
+  }).join('');
+}
+
+function renderLog(p){
+  if(!p.log.length) return '<div class="empty">No log entries yet</div>';
+  return [...p.log].reverse().map(l=>`<div class="log-entry"><div class="log-time">${l.ts}</div><div>${l.text}</div></div>`).join('');
+}
+
+function renderIdeas(){
+  if(!data.ideas.length) return '<div class="empty">No ideas yet</div>';
+  return data.ideas.map(i=>`<div class="item-row" onclick="openModal('idea',null,'${i.id}')">
+    <div class="item-left">
+      <div class="item-title">${i.title}</div>
+      ${i.notes?`<div class="item-meta">${i.notes}</div>`:''}
+    </div>
+    ${badge('idea',{bg:'#EEEDFE',color:'#3C3489'})}
+  </div>`).join('');
+}
+
+function renderMain(){
+  if(activeProject==='ideas'){
+    return `<div class="main">
+      <div class="topbar"><div class="proj-title">Ideas & backlog</div>${badge('backlog',{bg:'#EEEDFE',color:'#3C3489'})}</div>
+      <div class="panel">
+        <div class="items-list">${renderIdeas()}</div>
+        <button class="add-btn" onclick="openModal('idea')">+ add idea</button>
+      </div>
+    </div>`;
+  }
+  const p=data.projects.find(x=>x.id===activeProject);
+  if(!p) return '<div class="main"><div class="empty">Select a project</div></div>';
+  const sc=STATUS_COLORS[p.status]||STATUS_COLORS.idea;
+  const tabs=['tasks','alerts','log'];
+  const tabHtml=tabs.map(t=>`<div class="tab${activeTab===t?' active':''}" onclick="setTab('${t}')">${t}</div>`).join('');
+  let panelContent='';
+  if(activeTab==='tasks') panelContent=`<div class="items-list">${renderTasks(p)}</div><button class="add-btn" onclick="openModal('task','${p.id}')">+ add task</button>`;
+  else if(activeTab==='alerts') panelContent=`<div class="items-list">${renderAlerts(p)}</div><button class="add-btn" onclick="openModal('alert','${p.id}')">+ add alert</button>`;
+  else if(activeTab==='log') panelContent=`${renderLog(p)}<button class="add-btn" onclick="openModal('log','${p.id}')">+ add entry</button>`;
+  return `<div class="main">
+    <div class="topbar">
+      <div>
+        <div class="proj-title">${p.name}</div>
+        <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:2px">${p.desc||''}</div>
+      </div>
+      <span class="status-badge" style="background:${sc.bg};color:${sc.color}">${p.status}</span>
+    </div>
+    <div class="metrics">${renderMetrics(p)}</div>
+    <div class="tabs">${tabHtml}</div>
+    <div class="panel">${panelContent}</div>
+  </div>`;
+}
+
+function render(){
+  document.getElementById('app').innerHTML=`<div class="sidebar">${renderSidebar()}</div>${renderMain()}`;
+}
+
+function setProject(id){activeProject=id;activeTab='tasks';render()}
+function setTab(t){activeTab=t;render()}
+
+function openModal(type,projId,itemId){
+  modal={type,projId,itemId};
+  let html='';
+  if(type==='project'){
+    html=`<h3>New project</h3>
+      <div class="form-row"><label>Name</label><input id="m-name" placeholder="my-project"></div>
+      <div class="form-row"><label>Description</label><input id="m-desc" placeholder="What is this?"></div>
+      <div class="form-row"><label>Status</label><select id="m-status"><option>active</option><option>paused</option><option>idea</option><option>done</option></select></div>
+      <div class="modal-btns"><button onclick="closeModal()">Cancel</button><button class="primary" onclick="saveModal()">Add</button></div>`;
+  } else if(type==='task'){
+    const p=data.projects.find(x=>x.id===projId);
+    const t=p?.tasks.find(x=>x.id===itemId);
+    html=`<h3>${t?'Edit task':'New task'}</h3>
+      <div class="form-row"><label>Title</label><input id="m-title" value="${t?.title||''}"></div>
+      <div class="form-row"><label>Notes</label><textarea id="m-notes">${t?.notes||''}</textarea></div>
+      <div class="form-row"><label>Status</label><select id="m-status"><option${t?.status==='open'?' selected':''}>open</option><option${t?.status==='in-progress'?' selected':''}>in-progress</option><option${t?.status==='done'?' selected':''}>done</option><option${t?.status==='blocked'?' selected':''}>blocked</option></select></div>
+      <div class="form-row"><label>Priority</label><select id="m-priority"><option${t?.priority==='high'?' selected':''}>high</option><option${t?.priority==='medium'?' selected':''}>medium</option><option${t?.priority==='low'?' selected':''}>low</option></select></div>
+      <div class="modal-btns">${t?`<button onclick="deleteItem()" style="color:#A32D2D">Delete</button>`:''}
+      <button onclick="closeModal()">Cancel</button><button class="primary" onclick="saveModal()">Save</button></div>`;
+  } else if(type==='alert'){
+    const p=data.projects.find(x=>x.id===projId);
+    const a=p?.alerts.find(x=>x.id===itemId);
+    html=`<h3>${a?'Edit alert':'New alert'}</h3>
+      <div class="form-row"><label>Title</label><input id="m-title" value="${a?.title||''}"></div>
+      <div class="form-row"><label>Notes</label><textarea id="m-notes">${a?.notes||''}</textarea></div>
+      <div class="form-row"><label>Severity</label><select id="m-severity"><option${a?.severity==='warning'?' selected':''}>warning</option><option${a?.severity==='critical'?' selected':''}>critical</option><option${a?.severity==='info'?' selected':''}>info</option></select></div>
+      <div class="modal-btns">${a?`<button onclick="deleteItem()" style="color:#A32D2D">Delete</button>`:''}
+      <button onclick="closeModal()">Cancel</button><button class="primary" onclick="saveModal()">Save</button></div>`;
+  } else if(type==='log'){
+    html=`<h3>Add log entry</h3>
+      <div class="form-row"><label>Date</label><input id="m-date" value="${today()}"></div>
+      <div class="form-row"><label>Entry</label><textarea id="m-text" placeholder="What happened?"></textarea></div>
+      <div class="modal-btns"><button onclick="closeModal()">Cancel</button><button class="primary" onclick="saveModal()">Save</button></div>`;
+  } else if(type==='idea'){
+    const i=data.ideas.find(x=>x.id===itemId);
+    html=`<h3>${i?'Edit idea':'New idea'}</h3>
+      <div class="form-row"><label>Title</label><input id="m-title" value="${i?.title||''}"></div>
+      <div class="form-row"><label>Notes</label><textarea id="m-notes">${i?.notes||''}</textarea></div>
+      <div class="modal-btns">${i?`<button onclick="deleteItem()" style="color:#A32D2D">Delete</button>`:''}
+      <button onclick="closeModal()">Cancel</button><button class="primary" onclick="saveModal()">Save</button></div>`;
+  }
+  const el=document.createElement('div');
+  el.className='modal-bg';
+  el.id='modal-bg';
+  el.innerHTML=`<div class="modal">${html}</div>`;
+  el.addEventListener('click',e=>{if(e.target===el)closeModal()});
+  document.body.appendChild(el);
+}
+
+function closeModal(){document.getElementById('modal-bg')?.remove();modal=null}
+
+function saveModal(){
+  const {type,projId,itemId}=modal;
+  if(type==='project'){
+    const name=document.getElementById('m-name').value.trim();
+    if(!name)return;
+    data.projects.push({id:uid(),name,desc:document.getElementById('m-desc').value.trim(),status:document.getElementById('m-status').value,tasks:[],alerts:[],log:[]});
+  } else if(type==='task'){
+    const p=data.projects.find(x=>x.id===projId);
+    const title=document.getElementById('m-title').value.trim();
+    if(!title)return;
+    const obj={id:itemId||uid(),title,notes:document.getElementById('m-notes').value.trim(),status:document.getElementById('m-status').value,priority:document.getElementById('m-priority').value};
+    if(itemId){const i=p.tasks.findIndex(x=>x.id===itemId);p.tasks[i]=obj;}else p.tasks.push(obj);
+  } else if(type==='alert'){
+    const p=data.projects.find(x=>x.id===projId);
+    const title=document.getElementById('m-title').value.trim();
+    if(!title)return;
+    const obj={id:itemId||uid(),title,notes:document.getElementById('m-notes').value.trim(),severity:document.getElementById('m-severity').value};
+    if(itemId){const i=p.alerts.findIndex(x=>x.id===itemId);p.alerts[i]=obj;}else p.alerts.push(obj);
+  } else if(type==='log'){
+    const p=data.projects.find(x=>x.id===projId);
+    const text=document.getElementById('m-text').value.trim();
+    if(!text)return;
+    p.log.push({id:uid(),ts:document.getElementById('m-date').value,text});
+  } else if(type==='idea'){
+    const title=document.getElementById('m-title').value.trim();
+    if(!title)return;
+    const obj={id:itemId||uid(),title,notes:document.getElementById('m-notes').value.trim()};
+    if(itemId){const i=data.ideas.findIndex(x=>x.id===itemId);data.ideas[i]=obj;}else data.ideas.push(obj);
+  }
+  save();closeModal();render();
+}
+
+function deleteItem(){
+  const {type,projId,itemId}=modal;
+  if(type==='task'){const p=data.projects.find(x=>x.id===projId);p.tasks=p.tasks.filter(x=>x.id!==itemId);}
+  else if(type==='alert'){const p=data.projects.find(x=>x.id===projId);p.alerts=p.alerts.filter(x=>x.id!==itemId);}
+  else if(type==='idea'){data.ideas=data.ideas.filter(x=>x.id!==itemId);}
+  save();closeModal();render();
+}
+
+render();
+</script>
