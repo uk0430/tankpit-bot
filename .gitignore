@@ -1,3 +1,11 @@
 .env
 __pycache__/
 cache/
+venv/
+*.pkl
+*.db
+seen_posts.json
+supervisor_*.log
+award_output.png
+generated_tank.png
+bot.log*

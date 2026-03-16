@@ -1,8 +1,9 @@
 import asyncio
 import json
+import logging
+import logging.handlers
 import os
 import hashlib
-import logging
 import time
 import numpy as np
 import requests
@@ -19,7 +20,9 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler("bot.log"),
+        logging.handlers.RotatingFileHandler(
+            "bot.log", maxBytes=5 * 1024 * 1024, backupCount=3
+        ),
     ]
 )
 log = logging.getLogger(__name__)
@@ -30,12 +33,19 @@ log = logging.getLogger(__name__)
 
 load_dotenv()
 
-TOKEN = os.getenv("DISCORD_TOKEN")
-GUILD_ID = int(os.getenv("GUILD_ID"))
-GUILD_ID_2 = int(os.getenv("GUILD_ID_2"))
+TOKEN          = os.getenv("DISCORD_TOKEN")
+_GUILD_ID_RAW  = os.getenv("GUILD_ID")
+_GUILD_ID_2_RAW = os.getenv("GUILD_ID_2")
 
 if not TOKEN:
     raise ValueError("DISCORD_TOKEN missing")
+if not _GUILD_ID_RAW:
+    raise ValueError("GUILD_ID missing")
+if not _GUILD_ID_2_RAW:
+    raise ValueError("GUILD_ID_2 missing")
+
+GUILD_ID  = int(_GUILD_ID_RAW)
+GUILD_ID_2 = int(_GUILD_ID_2_RAW)
 
 # ==========================
 # CONFIG
@@ -52,14 +62,20 @@ os.makedirs(CACHE_FOLDER, exist_ok=True)
 # RAG DATA
 # ==========================
 
-with open("/home/ukhan/tankpit-ai/bible_chunks.json") as _f:
-    _raw_chunks = json.load(_f)
+_RAG_AVAILABLE = False
+BIBLE_TEXTS: list = []
+BIBLE_EMBEDDINGS_NORM = None
 
-BIBLE_TEXTS = [c["text"] for c in _raw_chunks]
-BIBLE_EMBEDDINGS = np.array([c["embedding"] for c in _raw_chunks], dtype=np.float32)
-# Pre-normalise for fast cosine similarity via dot product
-_norms = np.linalg.norm(BIBLE_EMBEDDINGS, axis=1, keepdims=True)
-BIBLE_EMBEDDINGS_NORM = BIBLE_EMBEDDINGS / np.where(_norms == 0, 1, _norms)
+try:
+    with open("/home/ukhan/tankpit-ai/bible_chunks.json") as _f:
+        _raw_chunks = json.load(_f)
+    BIBLE_TEXTS = [c["text"] for c in _raw_chunks]
+    _emb = np.array([c["embedding"] for c in _raw_chunks], dtype=np.float32)
+    _norms = np.linalg.norm(_emb, axis=1, keepdims=True)
+    BIBLE_EMBEDDINGS_NORM = _emb / np.where(_norms == 0, 1, _norms)
+    _RAG_AVAILABLE = True
+except FileNotFoundError:
+    log.warning("bible_chunks.json not found — /ask command will be unavailable")
 
 EMBED_URL = "http://127.0.0.1:8081/v1/embeddings"
 LLM_URL   = "http://127.0.0.1:8080/v1/chat/completions"
@@ -473,9 +489,7 @@ class AwardSelectionView(discord.ui.View):
         chosen_color = OFFICIAL_COLORS[color_val]
 
         try:
-            loop = asyncio.get_event_loop()
-            image_path = await loop.run_in_executor(
-                None,
+            image_path = await asyncio.to_thread(
                 generate_award_banner,
                 self.tank_name,
                 sorted_awards,
@@ -492,6 +506,15 @@ class AwardSelectionView(discord.ui.View):
     @discord.ui.button(label="Change Name", style=discord.ButtonStyle.secondary, row=3)
     async def change_name(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_modal(ChangeNameModal(self))
+
+    async def on_timeout(self):
+        if self.message:
+            try:
+                await self.message.edit(
+                    content="Session expired. Run `/award` again.", view=None
+                )
+            except discord.NotFound:
+                pass
 
 
 # ==========================
@@ -705,11 +728,21 @@ COLOR_EMOJI = {
 }
 
 
-async def fetch_leaderboard(year: str = "overall", page: int = 1) -> dict:
+async def fetch_leaderboard(
+    year: str = "overall",
+    page: int = 1,
+    color: str = None,
+    rank: str = None,
+) -> dict:
+    params: dict = {"leaderboard": year, "page": page}
+    if color:
+        params["color"] = color
+    if rank:
+        params["rank"] = rank
     async with aiohttp.ClientSession() as session:
         async with session.get(
             LEADERBOARD_URL,
-            params={"leaderboard": year, "page": page},
+            params=params,
             timeout=_API_TIMEOUT,
         ) as resp:
             resp.raise_for_status()
@@ -719,17 +752,40 @@ async def fetch_leaderboard(year: str = "overall", page: int = 1) -> dict:
 @tree.command(name="leaderboard", description="Show the TankPit leaderboard", guild=GUILD)
 @app_commands.describe(
     year="Year (e.g. 2024) or 'overall' (default)",
-    top="How many to show (default 10, max 25)",
+    top="How many to show (default 10, max 100)",
+    color="Filter by faction color",
+    rank="Filter by rank",
+)
+@app_commands.choices(
+    color=[
+        app_commands.Choice(name="Red",    value="red"),
+        app_commands.Choice(name="Purple", value="purple"),
+        app_commands.Choice(name="Blue",   value="blue"),
+        app_commands.Choice(name="Orange", value="orange"),
+    ],
+    rank=[
+        app_commands.Choice(name="General",    value="general"),
+        app_commands.Choice(name="Colonel",    value="colonel"),
+        app_commands.Choice(name="Major",      value="major"),
+        app_commands.Choice(name="Captain",    value="captain"),
+        app_commands.Choice(name="Lieutenant", value="lieutenant"),
+        app_commands.Choice(name="Sergeant",   value="sergeant"),
+        app_commands.Choice(name="Corporal",   value="corporal"),
+        app_commands.Choice(name="Private",    value="private"),
+        app_commands.Choice(name="Recruit",    value="recruit"),
+    ],
 )
 async def leaderboard(
     interaction: discord.Interaction,
     year: str = "overall",
     top: int = 10,
+    color: str = None,
+    rank: str = None,
 ):
-    top = max(1, min(top, 25))
+    top = max(1, min(top, 100))
     await interaction.response.defer()
     try:
-        data = await fetch_leaderboard(year=year)
+        data = await fetch_leaderboard(year=year, color=color, rank=rank)
     except aiohttp.ClientResponseError as e:
         await interaction.followup.send(f"API error: `{e.status} {e.message}`")
         return
@@ -740,10 +796,21 @@ async def leaderboard(
 
     results = data.get("results", [])[:top]
     if not results:
-        await interaction.followup.send(f"No leaderboard data for **{year}**.")
+        filter_note = " with these filters" if (color or rank) else ""
+        await interaction.followup.send(f"No leaderboard data for **{year}**{filter_note}.")
         return
 
-    title       = f"TankPit Leaderboard — {year.capitalize()}"
+    # Build title — show active filters when present
+    filter_parts = []
+    if color:
+        filter_parts.append(color.capitalize())
+    if rank:
+        filter_parts.append(rank.capitalize() + "s")
+    if filter_parts:
+        title = f"{year.capitalize()} Rankings — {' '.join(filter_parts)}"
+    else:
+        title = f"TankPit Leaderboard — {year.capitalize()}"
+
     total_pages = data.get("total_pages", 1)
 
     image_path = await asyncio.to_thread(generate_leaderboard_image, results, title, 1, total_pages)
@@ -759,10 +826,16 @@ async def leaderboard(
         medal    = {1: "🥇", 2: "🥈", 3: "🥉"}.get(placing, "")
         top3_lines.append(f"{medal} [{name}]({url})")
     embed.description = "\n".join(top3_lines)
-    embed.set_footer(text=f"Page 1 of {total_pages} • /leaderboard year:{year} top:{top}")
+
+    footer_parts = [f"year:{year}", f"top:{top}"]
+    if color:
+        footer_parts.append(f"color:{color}")
+    if rank:
+        footer_parts.append(f"rank:{rank}")
+    embed.set_footer(text=f"Page 1 of {total_pages} • /leaderboard {' '.join(footer_parts)}")
 
     await interaction.followup.send(file=discord.File(image_path), embed=embed)
-    log.info(f"/leaderboard: year={year} top={top}")
+    log.info(f"/leaderboard: year={year} top={top} color={color} rank={rank}")
 
 tree.add_command(leaderboard, guild=GUILD2)
 
@@ -826,6 +899,12 @@ def _rag_query(question: str) -> str:
 )
 async def ask(interaction: discord.Interaction, question: str, private: bool = False):
     await interaction.response.defer(ephemeral=private)
+
+    if not _RAG_AVAILABLE:
+        await interaction.followup.send(
+            "The `/ask` command is not available on this deployment.", ephemeral=True
+        )
+        return
 
     # In-memory cache check
     cached = _ASK_CACHE.get(question)
@@ -914,5 +993,5 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
     else:
         await interaction.followup.send(f"Unexpected error: `{error}`", ephemeral=True)
 
-print("Bot starting...")
+log.info("Bot starting...")
 bot.run(TOKEN)
