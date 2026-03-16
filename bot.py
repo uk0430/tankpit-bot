@@ -345,8 +345,8 @@ class AwardSelectionView(discord.ui.View):
 async def award(interaction: discord.Interaction, tank_name: str):
     name = tank_name.strip().strip(",")
     view = AwardSelectionView(name)
-    await interaction.response.send_message(_award_content(name), view=view, ephemeral=True)
-    view.message = await interaction.original_response()
+    await interaction.response.defer(ephemeral=True)
+    view.message = await interaction.followup.send(_award_content(name), view=view, ephemeral=True, wait=True)
 
 tree.add_command(award, guild=GUILD2)
 
