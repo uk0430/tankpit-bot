@@ -547,6 +547,90 @@ async def tank_lookup(interaction: discord.Interaction, tank_name: str):
 tree.add_command(tank_lookup, guild=GUILD2)
 
 # ==========================
+# /leaderboard COMMAND
+# ==========================
+
+LEADERBOARD_URL = "https://tankpit.com/api/leaderboards"
+
+RANK_EMOJI = {
+    "general": "⭐",
+    "colonel": "🔰",
+    "major": "🔹",
+    "captain": "▪️",
+}
+
+COLOR_EMOJI = {
+    "blue": "🔵",
+    "red": "🔴",
+    "orange": "🟠",
+    "purple": "🟣",
+}
+
+
+async def fetch_leaderboard(year: str = "overall", page: int = 1) -> dict:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            LEADERBOARD_URL,
+            params={"leaderboard": year, "page": page},
+            timeout=_API_TIMEOUT,
+        ) as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+
+@tree.command(name="leaderboard", description="Show the TankPit leaderboard", guild=GUILD)
+@app_commands.describe(
+    year="Year (e.g. 2024) or 'overall' (default)",
+    top="How many to show (default 10, max 25)",
+)
+async def leaderboard(
+    interaction: discord.Interaction,
+    year: str = "overall",
+    top: int = 10,
+):
+    top = max(1, min(top, 25))
+    await interaction.response.defer()
+    try:
+        data = await fetch_leaderboard(year=year)
+    except aiohttp.ClientResponseError as e:
+        await interaction.followup.send(f"API error: `{e.status} {e.message}`")
+        return
+    except Exception as e:
+        log.exception(f"/leaderboard failed: {e}")
+        await interaction.followup.send(f"Failed to reach TankPit API: `{e}`")
+        return
+
+    results = data.get("results", [])[:top]
+    if not results:
+        await interaction.followup.send(f"No leaderboard data for **{year}**.")
+        return
+
+    embed = discord.Embed(
+        title=f"TankPit Leaderboard — {year.capitalize()}",
+        color=0xFF9000,
+    )
+
+    lines = []
+    for entry in results:
+        placing = entry.get("placing", "?")
+        name = entry.get("name", "Unknown")
+        rank = entry.get("rank", "").lower()
+        color = entry.get("color", "").lower()
+        awards = decode_awards(entry.get("awards", []))
+        rank_icon = RANK_EMOJI.get(rank, "▫️")
+        color_icon = COLOR_EMOJI.get(color, "⚫")
+        medal = {1: "🥇", 2: "🥈", 3: "🥉"}.get(placing, f"`#{placing}`")
+        lines.append(f"{medal} {color_icon} **{name}** {rank_icon} {rank}")
+
+    embed.description = "\n".join(lines)
+    embed.set_footer(text=f"Page 1 of {data.get('total_pages', '?')} • /leaderboard year:2024 top:25")
+
+    await interaction.followup.send(embed=embed)
+    log.info(f"/leaderboard: year={year} top={top}")
+
+tree.add_command(leaderboard, guild=GUILD2)
+
+# ==========================
 # /ask COMMAND
 # ==========================
 
