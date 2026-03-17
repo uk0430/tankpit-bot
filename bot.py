@@ -69,13 +69,29 @@ BIBLE_EMBEDDINGS_NORM = None
 try:
     with open("/home/ukhan/tankpit-ai/bible_chunks.json") as _f:
         _raw_chunks = json.load(_f)
-    BIBLE_TEXTS = [c["text"] for c in _raw_chunks]
-    _emb = np.array([c["embedding"] for c in _raw_chunks], dtype=np.float32)
+    _valid_texts, _valid_embs = [], []
+    for _c in _raw_chunks:
+        _e = _c.get("embedding")
+        if not isinstance(_e, list) or len(_e) == 0:
+            continue
+        _arr = np.array(_e, dtype=np.float32)
+        if _arr.ndim != 1:
+            log.warning("Skipping chunk with unexpected embedding shape %s", _arr.shape)
+            continue
+        _valid_texts.append(_c["text"])
+        _valid_embs.append(_arr)
+    if not _valid_embs:
+        raise ValueError("No valid embeddings found in bible_chunks.json")
+    BIBLE_TEXTS = _valid_texts
+    _emb = np.stack(_valid_embs)  # guaranteed 2D: (n_chunks, dim)
     _norms = np.linalg.norm(_emb, axis=1, keepdims=True)
     BIBLE_EMBEDDINGS_NORM = _emb / np.where(_norms == 0, 1, _norms)
     _RAG_AVAILABLE = True
+    log.info("RAG loaded: %d chunks", len(BIBLE_TEXTS))
 except FileNotFoundError:
     log.warning("bible_chunks.json not found — /ask command will be unavailable")
+except Exception as _e:
+    log.warning("Failed to load RAG data (%s) — /ask command will be unavailable", _e)
 
 EMBED_URL = "http://127.0.0.1:8081/v1/embeddings"
 LLM_URL   = "http://127.0.0.1:8080/v1/chat/completions"
