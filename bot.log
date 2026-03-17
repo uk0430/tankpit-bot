@@ -1838,3 +1838,4 @@ requests.exceptions.ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8
 2026-03-16 20:46:30,360 [INFO] Synced 5 command(s) to guild 615551999701811221
 2026-03-16 20:46:30,525 [INFO] Synced 5 command(s) to guild 311890399767822359
 2026-03-16 20:46:30,525 [INFO] Logged in as TankPitBot#0095
+2026-03-16 20:48:31,402 [INFO] /leaderboard: year=2026 top=10 color=None rank=None
