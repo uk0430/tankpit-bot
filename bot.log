@@ -1732,3 +1732,109 @@ discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
 2026-03-16 20:36:30,532 [INFO] Synced 5 command(s) to guild 615551999701811221
 2026-03-16 20:36:30,619 [INFO] Synced 5 command(s) to guild 311890399767822359
 2026-03-16 20:36:30,619 [INFO] Logged in as TankPitBot#0095
+2026-03-16 20:36:57,858 [INFO] RAG loaded: 1320 chunks
+2026-03-16 20:36:57,858 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-16 20:36:57,860 [INFO] Bot starting...
+2026-03-16 20:36:57,860 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-16 20:36:57,861 [INFO] logging in using static token
+2026-03-16 20:36:58,483 [INFO] Shard ID None has connected to Gateway (Session ID: cbbff537e53ba0740204a8cd7799e290).
+2026-03-16 20:37:27,817 [ERROR] /ask failed for 'who is Grimlock': HTTPConnectionPool(host='127.0.0.1', port=8081): Max retries exceeded with url: /v1/embeddings (Caused by NewConnectionError("HTTPConnection(host='127.0.0.1', port=8081): Failed to establish a new connection: [Errno 111] Connection refused"))
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/urllib3/connection.py", line 204, in _new_conn
+    sock = connection.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/urllib3/util/connection.py", line 85, in create_connection
+    raise err
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/urllib3/util/connection.py", line 73, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/urllib3/connectionpool.py", line 787, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/urllib3/connectionpool.py", line 493, in _make_request
+    conn.request(
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/urllib3/connection.py", line 500, in request
+    self.endheaders()
+  File "/usr/lib/python3.12/http/client.py", line 1351, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/usr/lib/python3.12/http/client.py", line 1111, in _send_output
+    self.send(msg)
+  File "/usr/lib/python3.12/http/client.py", line 1055, in send
+    self.connect()
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/urllib3/connection.py", line 331, in connect
+    self.sock = self._new_conn()
+                ^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/urllib3/connection.py", line 219, in _new_conn
+    raise NewConnectionError(
+urllib3.exceptions.NewConnectionError: HTTPConnection(host='127.0.0.1', port=8081): Failed to establish a new connection: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/requests/adapters.py", line 644, in send
+    resp = conn.urlopen(
+           ^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/urllib3/connectionpool.py", line 841, in urlopen
+    retries = retries.increment(
+              ^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/urllib3/util/retry.py", line 535, in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='127.0.0.1', port=8081): Max retries exceeded with url: /v1/embeddings (Caused by NewConnectionError("HTTPConnection(host='127.0.0.1', port=8081): Failed to establish a new connection: [Errno 111] Connection refused"))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 1087, in ask
+    answer = await asyncio.to_thread(_rag_query, question)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/bot.py", line 1029, in _rag_query
+    embed_resp = requests.post(
+                 ^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/requests/api.py", line 115, in post
+    return request("post", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/requests/api.py", line 59, in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/requests/sessions.py", line 589, in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/requests/sessions.py", line 703, in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ukhan/tankpit-bot-legacy/venv/lib/python3.12/site-packages/requests/adapters.py", line 677, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8081): Max retries exceeded with url: /v1/embeddings (Caused by NewConnectionError("HTTPConnection(host='127.0.0.1', port=8081): Failed to establish a new connection: [Errno 111] Connection refused"))
+2026-03-16 20:37:30,588 [INFO] Synced 5 command(s) to guild 615551999701811221
+2026-03-16 20:37:30,722 [INFO] Synced 5 command(s) to guild 311890399767822359
+2026-03-16 20:37:30,722 [INFO] Logged in as TankPitBot#0095
+2026-03-16 20:37:45,184 [INFO] /award: Grimlock | awards=['double_star'] | color=Blue | size=Default
+2026-03-16 20:39:13,733 [INFO] RAG loaded: 1320 chunks
+2026-03-16 20:39:13,734 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-16 20:39:13,735 [INFO] Bot starting...
+2026-03-16 20:39:13,736 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-16 20:39:13,736 [INFO] logging in using static token
+2026-03-16 20:39:14,336 [INFO] Shard ID None has connected to Gateway (Session ID: 828c1494d11fc61c3dcfef798d62f9e5).
+2026-03-16 20:39:16,456 [INFO] Synced 5 command(s) to guild 615551999701811221
+2026-03-16 20:39:16,590 [INFO] Synced 5 command(s) to guild 311890399767822359
+2026-03-16 20:39:16,591 [INFO] Logged in as TankPitBot#0095
+2026-03-16 20:46:27,413 [INFO] RAG loaded: 1320 chunks
+2026-03-16 20:46:27,415 [WARNING] PyNaCl is not installed, voice will NOT be supported
+2026-03-16 20:46:27,417 [INFO] Bot starting...
+2026-03-16 20:46:27,418 [WARNING] Privileged message content intent is missing, commands may not work as expected.
+2026-03-16 20:46:27,418 [INFO] logging in using static token
+2026-03-16 20:46:28,239 [INFO] Shard ID None has connected to Gateway (Session ID: fe9867ef1bb325733f2b9d7adf1b25a6).
+2026-03-16 20:46:30,360 [INFO] Synced 5 command(s) to guild 615551999701811221
+2026-03-16 20:46:30,525 [INFO] Synced 5 command(s) to guild 311890399767822359
+2026-03-16 20:46:30,525 [INFO] Logged in as TankPitBot#0095

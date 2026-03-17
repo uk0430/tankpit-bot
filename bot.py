@@ -441,12 +441,15 @@ def generate_player_card(profile: dict) -> str:
     country = (profile.get("country") or "")[:30]
 
     world   = (profile.get("map_data") or {}).get("World") or {}
-    rank_val   = _fmt_stat(world.get("rank"), "—").capitalize()
-    kills_val  = _fmt_stat(world.get("destroyed_enemies"))
-    deaths_val = _fmt_stat(world.get("deactivated"))
+    private = not world
+    rank_val   = "Private" if private else _fmt_stat(world.get("rank"), "—").capitalize()
+    kills_val  = "Private" if private else _fmt_stat(world.get("destroyed_enemies"))
+    deaths_val = "Private" if private else _fmt_stat(world.get("deactivated"))
 
     tp = world.get("time_played")
-    if isinstance(tp, (int, float)) and tp > 0:
+    if private:
+        time_played = "Private"
+    elif isinstance(tp, (int, float)) and tp > 0:
         hours = int(tp) // 60
         mins  = int(tp) % 60
         time_played = f"{hours}h {mins}m" if hours else f"{mins}m"
@@ -455,10 +458,16 @@ def generate_player_card(profile: dict) -> str:
     else:
         time_played = "—"
 
-    tv       = profile.get("user_tournament_victories") or {}
-    gold_n   = int(tv.get("gold",   0) or 0)
-    silver_n = int(tv.get("silver", 0) or 0)
-    bronze_n = int(tv.get("bronze", 0) or 0)
+    tv = profile.get("user_tournament_victories") or {}
+    if not tv:
+        tv_lists = profile.get("tournament_victories") or {}
+        gold_n   = len(tv_lists.get("gold",   []))
+        silver_n = len(tv_lists.get("silver", []))
+        bronze_n = len(tv_lists.get("bronze", []))
+    else:
+        gold_n   = int(tv.get("gold",   0) or 0)
+        silver_n = int(tv.get("silver", 0) or 0)
+        bronze_n = int(tv.get("bronze", 0) or 0)
 
     raw_awards = profile.get("awards") or []
 
