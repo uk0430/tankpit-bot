@@ -204,6 +204,25 @@ AWARD_KEYS_BY_INDEX = [
 ]
 
 # ==========================
+# PLAYER CARD CONSTANTS
+# ==========================
+
+_PC_W        = 500
+_PC_BG       = (25,  32,  38)   # #192026
+_PC_ACCENT   = (63,  202, 112)  # #3fca70
+_PC_ACCENT_W = 4
+_PC_PAD      = 20
+_PC_WHITE    = (255, 255, 255)
+_PC_MUTED    = (128, 157, 177)  # #809db1
+
+_PC_FACTION  = {
+    "red":    (224,  0,   0),
+    "blue":   (0,    0,  224),
+    "orange": (255, 144,  0),
+    "purple": (223,  0,  224),
+}
+
+# ==========================
 # LEADERBOARD IMAGE CONSTANTS
 # ==========================
 
@@ -400,6 +419,168 @@ def generate_leaderboard_image(entries: list, title: str, page: int = 1, total_p
     img.save(cache_path)
     return cache_path
 
+
+# ==========================
+# PLAYER CARD GENERATOR
+# ==========================
+
+def _fmt_stat(val, default="—"):
+    return str(val) if val is not None else default
+
+
+def generate_player_card(profile: dict) -> str:
+    tank_id   = profile.get("tank_id")
+    cache_key = f"pc_{tank_id}" if tank_id else f"pc_{profile.get('name', 'unk')}"
+    cache_path = os.path.join(CACHE_FOLDER, f"{cache_key}.png")
+    if os.path.exists(cache_path):
+        return cache_path
+
+    name    = profile.get("name") or "Unknown"
+    color_k = (profile.get("main_color") or "").lower()
+    fav_map = (profile.get("favorite_map") or "—")[:22]
+    country = (profile.get("country") or "")[:30]
+
+    world   = (profile.get("map_data") or {}).get("World") or {}
+    rank_val   = _fmt_stat(world.get("rank"), "—").capitalize()
+    kills_val  = _fmt_stat(world.get("destroyed_enemies"))
+    deaths_val = _fmt_stat(world.get("deactivated"))
+
+    tp = world.get("time_played")
+    if isinstance(tp, (int, float)) and tp > 0:
+        hours = int(tp) // 60
+        mins  = int(tp) % 60
+        time_played = f"{hours}h {mins}m" if hours else f"{mins}m"
+    elif tp:
+        time_played = str(tp)
+    else:
+        time_played = "—"
+
+    tv       = profile.get("user_tournament_victories") or {}
+    gold_n   = int(tv.get("gold",   0) or 0)
+    silver_n = int(tv.get("silver", 0) or 0)
+    bronze_n = int(tv.get("bronze", 0) or 0)
+
+    raw_awards = profile.get("awards") or []
+
+    font_name_  = ImageFont.truetype(FONT_PATH, 24)
+    font_label  = ImageFont.truetype(FONT_PATH, 11)
+    font_val    = ImageFont.truetype(FONT_PATH, 14)
+    font_footer = ImageFont.truetype(FONT_PATH, 11)
+
+    sprite = Image.open(SPRITE_PATH).convert("RGBA")
+
+    header_icons = []
+    for i, val in enumerate(raw_awards):
+        if val and i < len(AWARD_KEYS_BY_INDEX):
+            key = AWARD_KEYS_BY_INDEX[i][min(val, 3) - 1]
+            header_icons.append(crop_award(sprite, AWARDS[key]["class"]))
+
+    # --- Measure for layout ---
+    probe = Image.new("RGBA", (1, 1))
+    pd    = ImageDraw.Draw(probe)
+
+    def _th(text, font):
+        b = pd.textbbox((0, 0), text, font=font)
+        return b[3] - b[1]
+
+    name_h   = _th(name, font_name_)
+    label_h  = _th("Rank", font_label)
+    val_h    = _th("00000", font_val)
+    footer_h = _th("ID: 00000", font_footer)
+
+    header_row_h = max(name_h, ICON_HEIGHT)
+    stats_row_h  = label_h + 4 + val_h
+    gap = 14
+
+    total_h = _PC_PAD + header_row_h + gap + stats_row_h + gap + stats_row_h + gap + footer_h + _PC_PAD
+
+    # --- Draw ---
+    img  = Image.new("RGB", (_PC_W, total_h), _PC_BG)
+    draw = ImageDraw.Draw(img)
+
+    draw.rectangle([0, 0, _PC_ACCENT_W - 1, total_h - 1], fill=_PC_ACCENT)
+
+    x0 = _PC_ACCENT_W + _PC_PAD
+    y  = _PC_PAD
+
+    # Color dot
+    dot_r  = 5
+    dot_cx = x0 + dot_r
+    dot_cy = y + name_h // 2
+    draw.ellipse(
+        [dot_cx - dot_r, dot_cy - dot_r, dot_cx + dot_r, dot_cy + dot_r],
+        fill=_PC_FACTION.get(color_k, _PC_MUTED),
+    )
+
+    draw.text((x0 + dot_r * 2 + 6, y), name, fill=_PC_WHITE, font=font_name_)
+
+    # Award icons — right-aligned, vertically centered with name
+    ax     = _PC_W - _PC_PAD
+    icon_y = y + (name_h - ICON_HEIGHT) // 2
+    for icon in reversed(header_icons):
+        ax -= icon.width
+        img.paste(icon, (ax, max(icon_y, 0)), icon)
+        ax -= 2
+
+    y += header_row_h + gap
+
+    col_w = (_PC_W - x0 - _PC_PAD) // 3
+
+    def draw_stat_cell(cx, cy, label, value_text=None, cup_counts=None):
+        draw.text((cx, cy), label, fill=_PC_MUTED, font=font_label)
+        vy = cy + label_h + 4
+        if cup_counts is not None:
+            ix  = cx
+            has = False
+            for cup_key, count in cup_counts:
+                if count:
+                    has = True
+                    icon = crop_award(sprite, AWARDS[cup_key]["class"])
+                    img.paste(icon, (ix, vy + (val_h - ICON_HEIGHT) // 2), icon)
+                    ix += icon.width + 2
+                    cnt = f"×{count}"
+                    cb  = pd.textbbox((0, 0), cnt, font=font_label)
+                    draw.text(
+                        (ix, vy + (val_h - (cb[3] - cb[1])) // 2),
+                        cnt, fill=_PC_WHITE, font=font_label,
+                    )
+                    ix += (cb[2] - cb[0]) + 5
+            if not has:
+                draw.text((cx, vy), "—", fill=_PC_WHITE, font=font_val)
+        else:
+            draw.text((cx, vy), value_text, fill=_PC_WHITE, font=font_val)
+
+    # Row 1: Time Played | Rank | Kills
+    for ci, (label, value) in enumerate([
+        ("Time Played", time_played),
+        ("Rank",        rank_val),
+        ("Kills",       kills_val),
+    ]):
+        draw_stat_cell(x0 + ci * col_w, y, label, value_text=value)
+
+    y += stats_row_h + gap
+
+    # Row 2: Deaths | Cups | Favorite Map
+    cups = [("gold_cup", gold_n), ("silver_cup", silver_n), ("bronze_cup", bronze_n)]
+    draw_stat_cell(x0,            y, "Deaths",       value_text=deaths_val)
+    draw_stat_cell(x0 + col_w,   y, "Cups",          cup_counts=cups)
+    draw_stat_cell(x0 + 2*col_w, y, "Favorite Map",  value_text=fav_map)
+
+    y += stats_row_h + gap
+
+    # Footer
+    if country:
+        draw.text((x0, y), country, fill=_PC_MUTED, font=font_footer)
+    if tank_id:
+        id_text = f"ID: {tank_id}"
+        ib  = pd.textbbox((0, 0), id_text, font=font_footer)
+        id_w = ib[2] - ib[0]
+        draw.text((_PC_W - _PC_PAD - id_w, y), id_text, fill=_PC_MUTED, font=font_footer)
+
+    img.save(cache_path)
+    return cache_path
+
+
 # ==========================
 # DISCORD SETUP
 # ==========================
@@ -595,52 +776,13 @@ async def fetch_tank_profile(tank_id: int) -> dict:
             return await resp.json()
 
 
-def build_tank_embed(profile: dict) -> discord.Embed:
-    name = profile.get("name", "Unknown")
+def build_profile_link_embed(profile: dict) -> discord.Embed:
+    tank_id    = profile.get("tank_id")
     color_name = (profile.get("main_color") or "").lower()
-    embed_color = {"blue": 0x0000E0, "red": 0xE00000, "orange": 0xFF9000, "purple": 0xDF00E0}.get(color_name, 0xFF9000)
-
-    embed = discord.Embed(title=name, color=embed_color)
-
-    # Row 1 — identity
-    if color_name:
-        embed.add_field(name="Color", value=color_name.capitalize(), inline=True)
-    if country := profile.get("country"):
-        embed.add_field(name="Country", value=country, inline=True)
-    if ping := profile.get("ping"):
-        embed.add_field(name="Ping", value=ping, inline=True)
-
-    # Row 2 — gameplay
-    if fav_map := profile.get("favorite_map"):
-        embed.add_field(name="Favorite Map", value=fav_map, inline=True)
-    if bf_name := profile.get("bf_tank_name"):
-        embed.add_field(name="Battlefield Tank", value=bf_name, inline=True)
-
-    # Tournament victories
-    tv = profile.get("tournament_victories") or {}
-    gold_n   = len(tv.get("gold",   []))
-    silver_n = len(tv.get("silver", []))
-    bronze_n = len(tv.get("bronze", []))
-    if gold_n or silver_n or bronze_n:
-        embed.add_field(
-            name="Tournament Victories",
-            value=f"🥇 {gold_n}  🥈 {silver_n}  🥉 {bronze_n}",
-            inline=False,
-        )
-
-    # Awards
-    raw_awards = profile.get("awards") or []
-    if raw_awards:
-        embed.add_field(name="Awards", value=decode_awards(raw_awards), inline=False)
-
-    # Bio
-    if bio := profile.get("profile"):
-        embed.add_field(name="Profile", value=bio, inline=False)
-
-    if tank_id := profile.get("tank_id"):
-        embed.set_footer(text=f"Tank ID: {tank_id}")
-
-    return embed
+    color      = {"blue": 0x0000E0, "red": 0xE00000, "orange": 0xFF9000, "purple": 0xDF00E0}.get(color_name, 0x3FCA70)
+    name       = profile.get("name", "Unknown")
+    url        = f"https://tankpit.com/tanks/profile?tank_id={tank_id}" if tank_id else "https://tankpit.com"
+    return discord.Embed(description=f"[View {name}'s profile on TankPit]({url})", color=color)
 
 
 class TankSelectView(discord.ui.View):
@@ -666,12 +808,19 @@ class TankSelectView(discord.ui.View):
         idx = int(interaction.data["values"][0])
         tank_id = self.results[idx].get("tank_id")
         try:
-            profile = await fetch_tank_profile(tank_id)
+            profile    = await fetch_tank_profile(tank_id)
+            image_path = await asyncio.to_thread(generate_player_card, profile)
         except Exception as e:
             log.exception(f"TankSelectView profile fetch failed (id={tank_id}): {e}")
             await interaction.edit_original_response(content=f"Failed to load profile: `{e}`", embed=None, view=None)
             return
-        await interaction.edit_original_response(content=None, embed=build_tank_embed(profile), view=None)
+        embed = build_profile_link_embed(profile)
+        await interaction.edit_original_response(
+            content=None,
+            attachments=[discord.File(image_path)],
+            embed=embed,
+            view=None,
+        )
 
 
 # ==========================
@@ -719,7 +868,13 @@ async def tank_lookup(interaction: discord.Interaction, tank_name: str):
         return
 
     log.info(f"/tank: {profile.get('name')} (id={tank_id})")
-    await interaction.edit_original_response(content=None, embed=build_tank_embed(profile))
+    image_path = await asyncio.to_thread(generate_player_card, profile)
+    embed = build_profile_link_embed(profile)
+    await interaction.edit_original_response(
+        content=None,
+        attachments=[discord.File(image_path)],
+        embed=embed,
+    )
 
 tree.add_command(tank_lookup, guild=GUILD2)
 
