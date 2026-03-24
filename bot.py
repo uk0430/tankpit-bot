@@ -55,6 +55,8 @@ SPRITE_PATH = "assets/awards.gif"
 FONT_PATH = "fonts/Gamer-Bold.otf"
 ICON_HEIGHT = 16
 CACHE_FOLDER = "cache"
+BIBLE_PATH = os.getenv("BIBLE_PATH", "/home/ukhan/tankpit-ai/bible_chunks.json")
+DB_PATH     = os.getenv("DB_PATH",    "/home/ukhan/tankpit-ai/tankpit.db")
 
 os.makedirs(CACHE_FOLDER, exist_ok=True)
 
@@ -67,7 +69,7 @@ BIBLE_TEXTS: list = []
 BIBLE_EMBEDDINGS_NORM = None
 
 try:
-    with open("/home/ukhan/tankpit-ai/bible_chunks.json") as _f:
+    with open(BIBLE_PATH) as _f:
         _raw_chunks = json.load(_f)
     _valid_texts, _valid_embs = [], []
     for _c in _raw_chunks:
@@ -202,6 +204,285 @@ AWARD_KEYS_BY_INDEX = [
     ["war_correspondent","war_correspondent", "war_correspondent"],
     ["lightbulb",        "lightbulb",         "lightbulb"],
 ]
+# ==========================
+# AWARD EMOJI MAP
+# ==========================
+
+AWARD_EMOJI = {
+    "Single Star":           "<:single_star:1483487155417382913>",
+    "Double Star":           "<:double_star:1483486945941262569>",
+    "Triple Star":           "<:triple_star:1483487180272701470>",
+    "Bronze Tank":           "<:bronze_tank:1483486898113609738>",
+    "Silver Tank":           "<:silver_tank:1483487134584410356>",
+    "Golden Tank":           "<:golden_tank:1483487004577632286>",
+    "Combat Honor":          "<:combat_honor:1483486924311232673>",
+    "Combat Honor Medal":    "<:combat_honor:1483486924311232673>",
+    "Battle Honor":          "<:battle_honor:1483486861203603476>",
+    "Battle Honor Medal":    "<:battle_honor:1483486861203603476>",
+    "Heroic Honor":          "<:heroic_honor:1483487022030127238>",
+    "Heroic Honor Medal":    "<:heroic_honor:1483487022030127238>",
+    "Shining Sword":         "<:shining_sword:1483487096101535945>",
+    "Battered Sword":        "<:battered_sword:1483486605850181855>",
+    "Rusty Sword":           "<:rusty_sword:1483487077814374533>",
+    "Defender of Truth":     "<:defender_truth:1483486967915086005>",
+    "Defender of the Truth": "<:defender_truth:1483486967915086005>",
+    "Bronze Cup":            "<:bronze_cup:1483486879260213360>",
+    "Silver Cup":            "<:silver_cup:1483487114460004412>",
+    "Gold Cup":              "<:gold_cup:1483486986118627492>",
+    "Purple Heart":          "<:purple_heart1:1483487699951161354>",
+    "War Correspondent":     "<:war_correspondent:1483487200405356704>",
+    "Lightbulb":             "<:lightbulb:1483487044159148284>",
+}
+
+def inject_award_emoji(text: str) -> str:
+    import re
+    for name in sorted(AWARD_EMOJI, key=len, reverse=True):
+        emoji = AWARD_EMOJI[name]
+        text = re.sub(re.escape(name), f"{emoji} {name}", text, flags=re.IGNORECASE)
+    return text
+
+
+
+# ==========================
+# SQL QUERY LAYER
+# ==========================
+import sqlite3 as _sqlite3
+import json as _json
+_DB_PATH = DB_PATH
+
+_AWARD_KEYS_BY_INDEX = [
+    ["single_star","double_star","triple_star"],
+    ["bronze_tank","silver_tank","golden_tank"],
+    ["combat_honor","battle_honor","heroic_honor"],
+    ["shining_sword","battered_sword","rusty_sword"],
+    ["defender_truth","defender_truth","defender_truth"],
+    ["bronze_cup","silver_cup","gold_cup"],
+    ["purple_heart","purple_heart","purple_heart"],
+    ["war_correspondent","war_correspondent","war_correspondent"],
+    ["lightbulb","lightbulb","lightbulb"],
+]
+
+# Snake_case key -> Discord emoji string (mirrors AWARD_EMOJI but keyed by snake_case)
+_EMOJI_BY_KEY = {
+    "single_star":         "<:single_star:1483487155417382913>",
+    "double_star":         "<:double_star:1483486945941262569>",
+    "triple_star":         "<:triple_star:1483487180272701470>",
+    "bronze_tank":         "<:bronze_tank:1483486898113609738>",
+    "silver_tank":         "<:silver_tank:1483487134584410356>",
+    "golden_tank":         "<:golden_tank:1483487004577632286>",
+    "combat_honor":        "<:combat_honor:1483486924311232673>",
+    "battle_honor":        "<:battle_honor:1483486861203603476>",
+    "heroic_honor":        "<:heroic_honor:1483487022030127238>",
+    "shining_sword":       "<:shining_sword:1483487096101535945>",
+    "battered_sword":      "<:battered_sword:1483486605850181855>",
+    "rusty_sword":         "<:rusty_sword:1483487077814374533>",
+    "defender_truth":      "<:defender_truth:1483486967915086005>",
+    "defender_of_truth":   "<:defender_truth:1483486967915086005>",
+    "bronze_cup":          "<:bronze_cup:1483486879260213360>",
+    "silver_cup":          "<:silver_cup:1483487114460004412>",
+    "gold_cup":            "<:gold_cup:1483486986118627492>",
+    "purple_heart":        "<:purple_heart1:1483487699951161354>",
+    "war_correspondent":   "<:war_correspondent:1483487200405356704>",
+    "lightbulb":           "<:lightbulb:1483487044159148284>",
+}
+
+_COLOR_DOT = {
+    "blue":   "🔵",
+    "red":    "🔴",
+    "orange": "🟠",
+    "purple": "🟣",
+}
+
+def _awards_to_emoji(awards_json: str) -> str:
+    """Convert awards_json to emoji-only string."""
+    if not awards_json or awards_json == "[]":
+        return ""
+    try:
+        awards = _json.loads(awards_json)
+        emojis = []
+        for i, item in enumerate(awards):
+            if isinstance(item, str):
+                # Clean format: "Triple Star" -> "triple_star"
+                key = item.lower().strip().replace(" ", "_")
+                # Normalize variations
+                key = key.replace("of_the_truth", "truth").replace("defender_truth", "defender_truth")
+                key = key.replace("_medal", "")
+                # Direct lookup
+                if key in _EMOJI_BY_KEY:
+                    emojis.append(_EMOJI_BY_KEY[key])
+                else:
+                    # Try partial match for edge cases like "defender_of_truth"
+                    for k in _EMOJI_BY_KEY:
+                        if k in key or key in k:
+                            emojis.append(_EMOJI_BY_KEY[k])
+                            break
+            elif isinstance(item, dict):
+                # Raw format: {"name": "3", "tier": "unknown"}
+                try:
+                    val = int(item.get("name", 0))
+                    if val > 0 and i < len(_AWARD_KEYS_BY_INDEX):
+                        idx = min(val, 3) - 1
+                        if 0 <= idx < len(_AWARD_KEYS_BY_INDEX[i]):
+                            key = _AWARD_KEYS_BY_INDEX[i][idx]
+                            if key in _EMOJI_BY_KEY:
+                                emojis.append(_EMOJI_BY_KEY[key])
+                except (ValueError, IndexError):
+                    pass
+        return " ".join(emojis)
+    except Exception:
+        return ""
+
+def _profile_link(name: str, tank_id, color: str = "") -> str:
+    dot = _COLOR_DOT.get(color, "")
+    prefix = f"{dot} " if dot else ""
+    if tank_id:
+        return f"{prefix}[{name}](https://tankpit.com/tanks/profile?tank_id={tank_id})"
+    return f"{prefix}**{name}**"
+
+def _parse_top_n(q: str, default: int = 5) -> int:
+    import re
+    m = re.search(r"top\s*(\d+)", q)
+    if m:
+        return min(int(m.group(1)), 100)
+    if "top ten" in q or "top 10" in q:
+        return 10
+    if "top twenty" in q or "top 25" in q or "top twenty five" in q:
+        return 25
+    if "top hundred" in q or "top 100" in q:
+        return 100
+    return default
+
+def _db_query(question: str) -> str | None:
+    q = question.lower().strip()
+    try:
+        con = _sqlite3.connect(_DB_PATH)
+        con.row_factory = _sqlite3.Row
+        cur = con.cursor()
+
+        # --- LEADERBOARD / TOP OVERALL ---
+        colors = []
+        for c in ["blue","red","orange","purple"]:
+            if c in q:
+                colors.append(c)
+        color_filter = colors[0] if colors else None
+
+        if any(w in q for w in ["top ten overall","top 10 overall","top overall","leaderboard overall","overall leaderboard","who is top","overall ranking","overall rank","top ten","top 10","overall top","top players","leaderboard","who are top","blues","reds","oranges","purples"])  or (any(c in q for c in ["blue","red","orange","purple"]) and any(w in q for w in ["top","leaderboard","best","ranking","rank"])):
+            n = _parse_top_n(q, 10)
+            if color_filter:
+                cur.execute("SELECT name, tank_id, awards_json, leaderboard_rank_overall FROM tanks WHERE leaderboard_rank_overall > 0 AND color=? ORDER BY leaderboard_rank_overall ASC LIMIT ?", (color_filter, n))
+            else:
+                cur.execute("SELECT name, tank_id, awards_json, leaderboard_rank_overall FROM tanks WHERE leaderboard_rank_overall > 0 ORDER BY leaderboard_rank_overall ASC LIMIT ?", (n,))
+            rows = cur.fetchall()
+            con.close()
+            if rows:
+                lines = []
+                for i, r in enumerate(rows, 1):
+                    emoji = _awards_to_emoji(r["awards_json"])
+                    link = _profile_link(r["name"], r["tank_id"], r["color"] or "")
+                    overall = f" *(#{r['leaderboard_rank_overall']} overall)*" if color_filter else ""
+                    lines.append(f"{i}. {link} {emoji}{overall}")
+                title = f"**{color_filter.title()} Overall Leaderboard (Top {n}):**" if color_filter else f"**Overall Leaderboard (Top {n}):**"
+                return title + "\n" + "\n".join(lines)
+
+        # --- RANK COUNT ---
+        for rank in ["general","colonel","major","captain","lieutenant","sergeant","recruit"]:
+            if rank in q and any(w in q for w in ["how many","count","total","number of"]):
+                cur.execute("SELECT COUNT(*) as n FROM tanks WHERE rank=?", (rank,))
+                n = cur.fetchone()["n"]
+                con.close()
+                return f"There are **{n}** players with the rank of **{rank}** in the database."
+
+        # --- TOP CUPS ---
+        if any(w in q for w in ["most gold cup","most gold cups","top gold cup"]):
+            n = _parse_top_n(q, 5)
+            cur.execute("SELECT name, tank_id, color, gold_cups, awards_json FROM tanks WHERE gold_cups > 0 AND (bf_tank_name IS NULL OR bf_tank_name = '' OR bf_tank_name = 'Unknown') ORDER BY gold_cups DESC LIMIT ?", (n,))
+            rows = cur.fetchall()
+            con.close()
+            if rows:
+                lines = [f"{i+1}. {_profile_link(r['name'],r['tank_id'],r['color'] or '')} {_awards_to_emoji(r['awards_json'])} — **{r['gold_cups']}** gold cups" for i,r in enumerate(rows)]
+                return f"**Top {n} by Gold Cups:**\n" + "\n".join(lines)
+
+        if any(w in q for w in ["most silver cup","most silver cups","top silver cup"]):
+            n = _parse_top_n(q, 5)
+            cur.execute("SELECT name, tank_id, color, silver_cups, awards_json FROM tanks WHERE silver_cups > 0 AND (bf_tank_name IS NULL OR bf_tank_name = '' OR bf_tank_name = 'Unknown') ORDER BY silver_cups DESC LIMIT ?", (n,))
+            rows = cur.fetchall()
+            con.close()
+            if rows:
+                lines = [f"{i+1}. {_profile_link(r['name'],r['tank_id'],r['color'] or '')} {_awards_to_emoji(r['awards_json'])} — **{r['silver_cups']}** silver cups" for i,r in enumerate(rows)]
+                return f"**Top {n} by Silver Cups:**\n" + "\n".join(lines)
+
+        if any(w in q for w in ["most bronze cup","most bronze cups","top bronze cup"]):
+            n = _parse_top_n(q, 5)
+            cur.execute("SELECT name, tank_id, color, bronze_cups, awards_json FROM tanks WHERE bronze_cups > 0 AND (bf_tank_name IS NULL OR bf_tank_name = '' OR bf_tank_name = 'Unknown') ORDER BY bronze_cups DESC LIMIT ?", (n,))
+            rows = cur.fetchall()
+            con.close()
+            if rows:
+                lines = [f"{i+1}. {_profile_link(r['name'],r['tank_id'],r['color'] or '')} {_awards_to_emoji(r['awards_json'])} — **{r['bronze_cups']}** bronze cups" for i,r in enumerate(rows)]
+                return f"**Top {n} by Bronze Cups:**\n" + "\n".join(lines)
+
+        if any(w in q for w in ["most cups","most tournament","most victories","top cups","top tournament"]):
+            n = _parse_top_n(q, 5)
+            cur.execute("SELECT name, tank_id, color, total_cups, awards_json FROM tanks WHERE total_cups > 0 AND (bf_tank_name IS NULL OR bf_tank_name = '' OR bf_tank_name = 'Unknown') ORDER BY total_cups DESC LIMIT ?", (n,))
+            rows = cur.fetchall()
+            con.close()
+            if rows:
+                lines = [f"{i+1}. {_profile_link(r['name'],r['tank_id'],r['color'] or '')} {_awards_to_emoji(r['awards_json'])} — **{r['total_cups']}** total cups" for i,r in enumerate(rows)]
+                return f"**Top {n} by Total Tournament Victories:**\n" + "\n".join(lines)
+
+        # --- MOST KILLS ---
+        if any(w in q for w in ["most kills","most enemies","highest kills","top kills","most kill"]):
+            n = _parse_top_n(q, 5)
+            cur.execute("SELECT name, tank_id, color, destroyed_enemies, awards_json FROM tanks WHERE destroyed_enemies > 0 AND (bf_tank_name IS NULL OR bf_tank_name = '' OR bf_tank_name = 'Unknown') ORDER BY destroyed_enemies DESC LIMIT ?", (n,))
+            rows = cur.fetchall()
+            con.close()
+            if rows:
+                lines = [f"{i+1}. {_profile_link(r['name'],r['tank_id'],r['color'] or '')} {_awards_to_emoji(r['awards_json'])} — **{r['destroyed_enemies']:,}** kills" for i,r in enumerate(rows)]
+                return f"**Top {n} by Kills:**\n" + "\n".join(lines)
+
+        # --- AWARD QUERIES ---
+        award_map = {
+            "triple star":"Triple Star","double star":"Double Star","single star":"Single Star",
+            "golden tank":"Golden Tank","silver tank":"Silver Tank","bronze tank":"Bronze Tank",
+            "heroic honor":"Heroic Honor","battle honor":"Battle Honor","combat honor":"Combat Honor",
+            "shining sword":"Shining Sword","battered sword":"Battered Sword","rusty sword":"Rusty Sword",
+            "defender of truth":"Defender of Truth","gold cup":"Gold Cup","silver cup":"Silver Cup",
+            "bronze cup":"Bronze Cup","purple heart":"Purple Heart",
+            "war correspondent":"War Correspondent","lightbulb":"Lightbulb",
+        }
+        for key, display in award_map.items():
+            if key in q:
+                if any(w in q for w in ["how many","count","total","number"]):
+                    cur.execute("SELECT COUNT(*) as n FROM tanks WHERE awards_json LIKE ?", (f"%{display}%",))
+                    n = cur.fetchone()["n"]
+                    con.close()
+                    emoji = AWARD_EMOJI.get(display, "")
+                    return f"There are **{n}** players with the {emoji} **{display}** award in the database."
+                if any(w in q for w in ["who has","list","show","players with","tanks with","all players","give me"]):
+                    top_n = _parse_top_n(q, 10)
+                    cur.execute("SELECT name, tank_id, color, awards_json FROM tanks WHERE awards_json LIKE ? ORDER BY name LIMIT ?", (f"%{display}%", top_n))
+                    rows = cur.fetchall()
+                    con.close()
+                    if rows:
+                        lines = [f"• {_profile_link(r['name'],r['tank_id'],r['color'] or '')} {_awards_to_emoji(r['awards_json'])}" for r in rows]
+                        emoji = AWARD_EMOJI.get(display, "")
+                        return f"**Players with {emoji} {display} (showing {len(rows)}):**\n" + "\n".join(lines)
+
+        # --- TOTAL PLAYERS ---
+        if any(w in q for w in ["how many players","how many tanks","total players","total tanks"]):
+            cur.execute("SELECT COUNT(*) as n FROM tanks")
+            n = cur.fetchone()["n"]
+            con.close()
+            return f"There are **{n}** players in the TankPit database."
+
+        con.close()
+        return None
+
+    except Exception as e:
+        try:
+            con.close()
+        except:
+            pass
+        return None
 
 # ==========================
 # PLAYER CARD CONSTANTS
@@ -430,7 +711,10 @@ def _fmt_stat(val, default="—"):
 
 def generate_player_card(profile: dict) -> str:
     tank_id   = profile.get("tank_id")
-    cache_key = f"pc_{tank_id}" if tank_id else f"pc_{profile.get('name', 'unk')}"
+    # Hash key on stats that change so stale cards are never served
+    world = (profile.get("map_data") or {}).get("World") or {}
+    _cache_str = f"{tank_id}|{profile.get('name')}|{world.get('rank')}|{world.get('destroyed_enemies')}|{world.get('deactivated')}|{world.get('time_played')}|{profile.get('main_color')}|{profile.get('country')}|{profile.get('favorite_map')}|{profile.get('awards')}"
+    cache_key = f"pc_{hashlib.md5(_cache_str.encode()).hexdigest()}"
     cache_path = os.path.join(CACHE_FOLDER, f"{cache_key}.png")
     if os.path.exists(cache_path):
         return cache_path
@@ -1002,7 +1286,7 @@ async def leaderboard(
         placing  = entry.get("placing")
         name     = entry.get("name", "Unknown")
         tank_id  = entry.get("tank_id")
-        url      = f"https://tankpit.com/tank/{tank_id}" if tank_id else "https://tankpit.com"
+        url      = f"https://tankpit.com/tanks/profile?tank_id={tank_id}" if tank_id else "https://tankpit.com"
         medal    = {1: "🥇", 2: "🥈", 3: "🥉"}.get(placing, "")
         top3_lines.append(f"{medal} [{name}]({url})")
     embed.description = "\n".join(top3_lines)
@@ -1092,6 +1376,17 @@ async def ask(interaction: discord.Interaction, question: str, private: bool = F
         answer = cached[0]
         log.info(f"/ask (cached): q={question!r}")
     else:
+        # Try SQL layer first, fall back to RAG
+        db_answer = await asyncio.to_thread(_db_query, question)
+        if db_answer is not None:
+            answer = db_answer
+            _ASK_CACHE[question] = (answer, time.time() + _ask_ttl(question))
+            if len(answer) > 4096:
+                answer = answer[:4093] + "…"
+            embed = discord.Embed(title=question[:256], description=answer, color=0xFF9000)
+            embed.set_author(name=interaction.user.display_name, icon_url=str(interaction.user.display_avatar.url))
+            await interaction.followup.send(embed=embed, ephemeral=private)
+            return
         try:
             answer = await asyncio.to_thread(_rag_query, question)
         except Exception as e:
@@ -1102,6 +1397,7 @@ async def ask(interaction: discord.Interaction, question: str, private: bool = F
 
     if len(answer) > 4096:
         answer = answer[:4093] + "…"
+    answer = inject_award_emoji(answer)
 
     embed = discord.Embed(
         title=question[:256],
