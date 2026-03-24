@@ -1391,7 +1391,11 @@ async def ask(interaction: discord.Interaction, question: str, private: bool = F
             answer = await asyncio.to_thread(_rag_query, question)
         except Exception as e:
             log.exception(f"/ask failed for '{question}': {e}")
-            await interaction.followup.send(f"Error querying AI: `{e}`", ephemeral=True)
+            await interaction.followup.send(
+                "AI search isn't available on this server — the embedding service isn't running here. "
+                "SQL-based questions (leaderboard, stats, ranks) still work.",
+                ephemeral=True,
+            )
             return
         _ASK_CACHE[question] = (answer, time.time() + _ask_ttl(question))
 
