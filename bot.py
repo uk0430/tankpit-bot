@@ -95,8 +95,8 @@ except FileNotFoundError:
 except Exception as _e:
     log.warning("Failed to load RAG data (%s) — /ask command will be unavailable", _e)
 
-EMBED_URL = "http://127.0.0.1:8081/v1/embeddings"
-LLM_URL   = "http://127.0.0.1:8080/v1/chat/completions"
+EMBED_URL = os.getenv("EMBED_URL", "http://127.0.0.1:8081/v1/embeddings")
+LLM_URL   = os.getenv("LLM_URL",   "http://127.0.0.1:8080/v1/chat/completions")
 
 # ==========================
 # COLORS
